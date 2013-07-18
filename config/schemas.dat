@@ -1,0 +1,5 @@
+# This is the schemas config file for mShots.JS
+# Only the URL schemas listed in this config file are permitted to be used to request thumbnails
+# The snapper.node module will blacklist all others not listed, e.g. ftp,sftp,gopher,etc...
+http
+https

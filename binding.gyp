@@ -1,0 +1,49 @@
+{
+	'targets':[ {
+		'target_name':'snapper',
+		'cflags_cc': [ '-fexceptions', '-O3', '-Wall' ],
+		'sources':[
+				'src/main.cc',
+				'src/snapper.cc',
+				'src/webpage.cc',
+				'src/blacklist.cc',
+				'src/snapper.moc.cc',
+				'src/webpage.moc.cc',
+				'src/blacklist.moc.cc',
+		],
+		'conditions':[
+			['OS=="mac"',{
+				'include_dirs':[
+				'./deps/darwin_x64/include/',
+				'./deps/darwin_x64/include/QtCore',
+				'./deps/darwin_x64/include/QtGui',
+				'./deps/darwin_x64/include/QtWidgets',
+				'./deps/darwin_x64/include/QtNetwork',
+				'./deps/darwin_x64/include/QtWebKit',
+				'./deps/darwin_x64/include/QtWebKitWidgets',
+				],
+				'libraries':[
+				'../deps/darwin_x64/lib/QtCore',
+				'../deps/darwin_x64/lib/QtNetwork',
+				'../deps/darwin_x64/lib/QtWebKitWidgts',
+				],
+			}],
+			['OS=="linux"',{
+				'include_dirs':[
+				'./deps/linux_x64/include/',
+				'./deps/linux_x64/include/QtCore',
+				'./deps/linux_x64/include/QtGui',
+				'./deps/linux_x64/include/QtWidgets',
+				'./deps/linux_x64/include/QtNetwork',
+				'./deps/linux_x64/include/QtWebKit',
+				'./deps/linux_x64/include/QtWebKitWidgets',
+				],
+				'libraries':[
+				'../deps/linux_x64/lib/libQt5Core.so.5',
+				'../deps/linux_x64/lib/libQt5Network.so.5',
+				'../deps/linux_x64/lib/libQt5WebKitWidgets.so.5',
+				],
+			}]
+		]
+	}]
+}

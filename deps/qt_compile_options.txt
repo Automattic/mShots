@@ -1,0 +1,2 @@
+
+/configure --prefix=/opt/mShots.JS/deps/linux_x64/ -release -opensource -confirm-license -no-qml-debug -qt-zlib -qt-libpng -qt-libjpeg -openssl-linked -qt-xcb -silent -no-cups -dbus-linked -opengl es2 -qpa linuxfb

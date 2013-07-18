@@ -1,0 +1,13 @@
+{
+	"name": "mShots.JS",
+	"author": "David Newman <dnewman@automattic.com>",
+	"description": "WordPress mShots System Service (node.js version)",
+	"version": "0.1.0",
+	"main": "./lib/mshots.js",
+	"engines": {
+		"node": ">= 0.10.0"
+	},
+	"dependencies": {
+    		"log4js": ">=0.6.0"
+  	}
+}

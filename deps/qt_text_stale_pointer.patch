@@ -1,0 +1,16 @@
+--- qtbase/src/gui/text/qtextengine.cpp_old	2013-07-05 21:00:03.111573567 +0000
++++ qtbase/src/gui/text/qtextengine.cpp	2013-07-05 21:00:31.437384925 +0000
+@@ -1714,9 +1714,11 @@
+             feCache.prevFontEngine = engine;
+             feCache.prevScript = script;
+             engine->ref.ref();
+-            if (feCache.prevScaledFontEngine)
++            if (feCache.prevScaledFontEngine) {
+                 releaseCachedFontEngine(feCache.prevScaledFontEngine);
+-        }
++				feCache.prevScaledFontEngine = NULL;
++			}
++		}
+         if (si.analysis.flags & QFont::SmallCaps) {
+             if (feCache.prevScaledFontEngine) {
+                 scaledEngine = feCache.prevScaledFontEngine;
