@@ -5,15 +5,15 @@ mShots.JS
 Overview
 --------
 This application is split into four distinct components, the mShots PHP class (receiving requests from the WordPress mShots plugin),
-the node.JS cluster server program to manage the filtered incoming requests passed on from the mShots class, the native node.JS module,
-Snapper, which performs the actual snapshot generation and custom compiled Qt5.1 Alpha libraries to run X-less in the command line
-server environment on Debian Linux (Wheezy). Note: The virtual frame buffer Kernel module (VFB) is required.
+the node.JS cluster service to manage the filtered incoming requests passed on from the mShots class, the native node.JS module,
+Snapper, which performs the actual snapshot generation and custom compiled Qt5.1 libraries to run X-less in the command line
+server environment on Debian Linux (Wheezy). Note: The virtual frame buffer Kernel module (VFB) is required for the service.
 
 Installation for Development
 ----------------------------
-If anything goes awry or is unclear in one of these steps, take a look at the "Details" section for more info.
+If anything goes awry or is unclear in one of these steps, take a look at the "Details" section below for slightly more detailed info.
 
-1) Install node.js from http://nodejs.org
+1) Install the latest node.js binaries from http://nodejs.org
 
 2) Place the mShots folder in "/opt/", so the final path is "/opt/mShots.JS/".
 
@@ -27,7 +27,7 @@ If anything goes awry or is unclear in one of these steps, take a look at the "D
 
 5) mShots.JS requires a logging library, install this with "sudo npm install log4js", while in the mShots.JS root directory "/opt/mShots.JS".
 
-6) While still in the mShots root directory ("/opt/mShots.JS"), run "sudo node-gyp configure". Followed by "sudo node-gyp build".
+6) While in the mShots root directory ("/opt/mShots.JS"), run "sudo node-gyp configure". Followed by "sudo node-gyp build".
 	If node-gyp is not installed, run "sudo npm install -g node-gyp" to install it.
 
 7) You are now ready to run the mShots.JS service with "./mshots_ctl.sh start|stop". Note: The virtual frame buffer Kernel module (VFB) is required.
@@ -45,16 +45,16 @@ are generated.
 Snapper node.JS Module (code in "src")
 
 To compile the node module you will need to follow the following steps:
-1) Install node.JS from http://nodejs.org
-2) Once this is installed confirm node-gyp is installed by typing "node-gyp -v" at the command prompt.
+1. Install node.JS from http://nodejs.org
+2. Once this is installed confirm node-gyp is installed by typing "node-gyp -v" at the command prompt.
 	If it is not installed, install it with the command "sudo npm install -g node-gyp".
-3) For the compilation of the module you need the Qt5 header and Qt5.1 library files. These are provided as a separate tar file in the deps
+3. For the compilation of the module you need the Qt5 header and Qt5.1 library files. These are provided as a separate tar file in the deps
 	folder and will need to be extracted into the "deps" folder.
-4) If you are installing onto Debian you will need to ensure that libssl is installed before proceeding to the next step. To do this run
+4. If you are installing onto Debian you will need to ensure that libssl is installed before proceeding to the next step. To do this run
 	"sudo apt-get install openssl".
-5) To compile the Snapper node module you, whilst in the root of the mShots.JS directory, run "sudo node-gyp configure" and then
+5. To compile the Snapper node module you, whilst in the root of the mShots.JS directory, run "sudo node-gyp configure" and then
 	"sudo node-gyp build". The resulting file will be in the build/Release/ directory.
-6) Before running the mShots node script, you will need to run the following commands:
+6. Before running the mShots node script, you will need to run the following commands:
 	sudo cp -d /opt/mShots.JS/deps/<platform>/lib/libQt5Core.so* /usr/lib/
     sudo cp -d /opt/mShots.JS/deps/<platform>/lib/libQt5Network.so* /usr/lib/
     sudo cp -d /opt/mShots.JS/deps/<platform>/lib/libQt5WebKitWidgets.so* /usr/lib/
@@ -62,9 +62,9 @@ To compile the node module you will need to follow the following steps:
 mShots node.JS Program (code in "lib")
 
 The node program has two dependencies, the Snapper module above and the log4js module for program logging.
-1) At the prompt, change to the root directory of mShots.JS, install the log4js module with the command "npm install log4js".
-2) Control the execution of the program with the start.sh and stop.sh bash scripts in the root directory or by manually running the
-	following command from the terminal, while in the mShots root directory:
+1. At the prompt, change to the root directory of mShots.JS, install the log4js module with the command "npm install log4js".
+2. Control the execution of the program with the mshots_ctl.sh bash script in the root directory or by manually running the
+	following command from the terminal, whilst in the mShots root directory:
 	"node lib/mshots.js -p <port number> -n <nun threads>" and terminating execution with Ctrl-C.
 
 Custom Qt Compilation for Debian (headers and binaries must be in placed the relevant "deps" folder)
@@ -74,6 +74,7 @@ and the compilation options in the same directory. The reason for modifification
 in Qt, which causes many sites to abruptly segfault.
 
 Development for Max OS X
+------------------------
 
-This is also supported, you will just need to install the latest Qt 5.1 and thebn copy the relevant modules needed for compilation into the
-"./deps/darwin_x64/" directory. The required models are Core, Network and WebKitWidgets.
+This is supported, you will need to install the latest Qt 5.1 libraries and then copy the relevant modules required for linking into the
+"./deps/darwin_x64/" directory (or modify the paths in "binding.gyp" accordingly). The required models for linking are Core, Network and WebKitWidgets.
