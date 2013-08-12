@@ -79,7 +79,7 @@ The node program has two dependencies, the Snapper module above and the log4js m
 - At the prompt, change to the root directory of mShots.JS, install the log4js module with the command "npm install log4js".
 - Control the execution of the program with the mshots_ctl.sh bash script in the root directory or by manually running the following command from the terminal, whilst in the mShots root directory:
 
-	> node lib/mshots.js -p <port number> -n <nun threads>
+	> node lib/mshots.js -p <portnumber> -n <numworkers>
 
 **Custom Qt Compilation for Debian (headers and binaries must be in placed the relevant "deps" folder)**
 
