@@ -86,9 +86,3 @@ The node program has two dependencies, the Snapper module above and the log4js m
 The Snapper node.JS module for Debian Linux required a custom compilation of Qt5.1, using the simple patch located in "deps/linux_x64/",
 and the compilation options in the same directory. The reason for modifification from the original was overcome a text/glyph rendering bug
 in Qt, which causes many sites to abruptly segfault.
-
-Development for Max OS X
-------------------------
-
-This is supported, you will need to install the latest Qt 5.1 libraries and then copy the relevant modules required for linking into the
-"./deps/darwin_x64/" directory (or modify the paths in "binding.gyp" accordingly). The required models for linking are Core, Network and WebKitWidgets.
