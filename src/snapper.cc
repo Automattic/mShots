@@ -90,6 +90,7 @@ void Snapper::handleAuthentication( QNetworkReply* reply, QAuthenticator* auth )
 	err_msg += ") requires authentication. Using default 403 image.";
 	Handle<Value> argv[argc] = { String::New( err_msg.toStdString().data() ), Number::New( GENERAL_ERROR ) };
 	this->m_callback->Call( Context::GetCurrent()->Global(), argc, argv );
+	this->m_callback.Dispose();
 }
 
 void Snapper::saveAsNotFound() {
@@ -149,6 +150,7 @@ void Snapper::load( const QUrl &p_url, const QString &p_filename ) {
 			err_msg += QString::number( m_width ) + ", but only have a surface of " + QString::number( constWidth ) + " available.";
 			Handle<Value> argv[argc] = { String::New( err_msg.toStdString().data() ), Number::New( GENERAL_ERROR ) };
 			this->m_callback->Call( Context::GetCurrent()->Global(), argc, argv );
+			this->m_callback.Dispose();
 			return;
 		}
 		m_filename = p_filename;
@@ -162,6 +164,7 @@ void Snapper::load( const QUrl &p_url, const QString &p_filename ) {
 		err_msg += m_url.toString().toStdString().data();
 		Handle<Value> argv[argc] = { String::New( err_msg.toStdString().data() ), Number::New( GENERAL_ERROR ) };
 		this->m_callback->Call( Context::GetCurrent()->Global(), argc, argv );
+		this->m_callback.Dispose();
 	}
 }
 
@@ -197,6 +200,7 @@ void Snapper::permitURL( int returnCode ) {
 				err_msg += m_url.host().toStdString().data();
 			Handle<Value> argv[argc] = { String::New( err_msg.toStdString().data() ), Number::New( returnCode ) };
 			this->m_callback->Call( Context::GetCurrent()->Global(), argc, argv );
+			this->m_callback.Dispose();
 		}
 	}
 	catch ( std::exception& ) {
@@ -206,6 +210,7 @@ void Snapper::permitURL( int returnCode ) {
 		err_msg += m_url.toString().toStdString().data();
 		Handle<Value> argv[argc] = { String::New( err_msg.toStdString().data() ), Number::New( GENERAL_ERROR ) };
 		this->m_callback->Call( Context::GetCurrent()->Global(), argc, argv );
+		this->m_callback.Dispose();
 	}
 }
 
@@ -234,6 +239,7 @@ void Snapper::frameLoad( bool okay ) {
 		const unsigned argc = 2;
 		Handle<Value> argv[argc] = { String::New( "" ), Number::New( SUCCESS ) };
 		this->m_callback->Call( Context::GetCurrent()->Global(), argc, argv );
+		this->m_callback.Dispose();
 	} else {
 		this->saveAsNotFound();
 		const unsigned argc = 2;
@@ -241,6 +247,7 @@ void Snapper::frameLoad( bool okay ) {
 		err_msg += m_url.toString().toStdString().data();
 		Handle<Value> argv[argc] = { String::New( err_msg.toStdString().data() ), Number::New( GENERAL_ERROR ) };
 		this->m_callback->Call( Context::GetCurrent()->Global(), argc, argv );
+		this->m_callback.Dispose();
 	}
 }
 
@@ -261,10 +268,12 @@ void Snapper::saveThumbnail( const QUrl &p_url, const QString &p_filename, const
                 const unsigned argc = 2;
 				Handle<Value> argv[argc] = { String::New( "" ), Number::New( SUCCESS ) };
 				this->m_callback->Call( Context::GetCurrent()->Global(), argc, argv );
+				this->m_callback.Dispose();
 			} else {
 				const unsigned argc = 2;
 				Handle<Value> argv[argc] = { String::New( "Failed to save the snapshot image file." ),  Number::New( GENERAL_ERROR ) };
 				this->m_callback->Call( Context::GetCurrent()->Global(), argc, argv );
+				this->m_callback.Dispose();
 			}
 		}
 	} else {
@@ -283,6 +292,7 @@ void Snapper::saveThumbnail( const QUrl &p_url, const QString &p_filename, const
 		err_msg += QString::number( p_height ).toStdString().data();
 		Handle<Value> argv[argc] = { String::New( err_msg.toStdString().data() ), Number::New( GENERAL_ERROR ) };
 		this->m_callback->Call( Context::GetCurrent()->Global(), argc, argv );
+		this->m_callback.Dispose();
 	}
 }
 
