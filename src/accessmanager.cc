@@ -9,17 +9,6 @@ QNetworkReply *AccessManager::createRequest( QNetworkAccessManager::Operation op
 	if ( request.url().host().isEmpty() )
 		return QNetworkAccessManager::createRequest( operation, request, device );
 
-// https://x.myspacecdn.com/new/discover/js/discoverBundle.0081AA1A4A089FB82C46FC5DFAF4292F.min.js
-// http://stackful.com/6516
-// http://esgallacreacions.com
-// http://kizi8x.com
-// http://praguepost.com
-// http://freeside.co
-// http://suprb.com/apps/nested/
-
-	if ( QString( "https://x.myspacecdn.com/new/discover/js/discoverBundle." ) == request.url().toString().mid( 0, 56 ) )
-		return this->createBlacklistRequest( QString( "Bugger '" + request.url().host() + "'" ) );
-
 	if ( ! m_blacklist->allowedHost( request.url().host() ) ) {
 		if ( QFile( QDir::currentPath() + QDir::separator() + "logs/blacklisted.log" ).size() > MAX_LOG_FILESIZE )
 				this->do_log_rotation();
