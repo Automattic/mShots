@@ -51,12 +51,12 @@ static void segfault_handler( int sig, siginfo_t *si, void *unused ) {
 	#endif
 
     bytes = snprintf(sbuff, sizeof( sbuff ), "PID %d received SIGSEGV for address: 0x%lx\n", pid, (long) si->si_addr);
-    if(fd > 0)
+    if ( fd > 0 )
     	write( fd, sbuff, bytes );
-    write( STDERR_FD, sbuff, bytes);
+    write( STDERR_FD, sbuff, bytes );
 
-    size = backtrace(array, 32);
-    if(fd > 0)
+    size = backtrace( array, 32 );
+    if ( fd > 0 )
     	backtrace_symbols_fd( array, size, fd );
     backtrace_symbols_fd( array, size, STDERR_FD );
 
@@ -148,6 +148,14 @@ Handle<Value> ReloadBlacklistConfig( const Arguments& args ) {
 	return scope.Close( Undefined() );
 }
 
+Handle<Value> ReloadConfig( const Arguments& args ) {
+	HandleScope scope;
+	if ( NULL != websnap ) {
+		websnap->reloadConfig();
+	}
+	return scope.Close( Undefined() );
+}
+
 Handle<Value> ProcessEvents( const Arguments& args ) {
 	HandleScope scope;
 	if ( app->hasPendingEvents() )
@@ -233,6 +241,7 @@ void Initialise( Handle<Object> exports) {
 	exports->Set( String::NewSymbol( "setForceSnapshot" ), FunctionTemplate::New( setForceSnapshot )->GetFunction() );
 	exports->Set( String::NewSymbol( "pageLoadProgress" ), FunctionTemplate::New( pageLoadProgress )->GetFunction() );
 	exports->Set( String::NewSymbol( "reloadBlacklistConfig" ), FunctionTemplate::New( ReloadBlacklistConfig )->GetFunction() );
+	exports->Set( String::NewSymbol( "reloadConfig" ), FunctionTemplate::New( ReloadConfig )->GetFunction() );
 
 	struct sigaction sa;
     memset( &sa, 0, sizeof( struct sigaction ) );
