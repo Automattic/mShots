@@ -26,6 +26,8 @@ public:
 	Blacklist( QObject *parent = 0 );
 
 	void permitURL( const QUrl ckeckHostURL );
+	bool allowedIP( QHostAddress checkIP ) const;
+	bool allowedHost( const QString checkHost ) const;
 	void reload();
 
 signals:
@@ -36,11 +38,11 @@ private slots:
 
 private:
 	QVector<QHostAddress> v_BlacklistedIPs;
+	QVector<QString> v_BlacklistedHosts;
 	QVector<QString> v_BlacklistedSubnets;
 	QVector<QString> v_AllowedSchemas;
 
 	void loadList();
-	bool allowedIP( QHostAddress checkIP ) const;
 };
 
 #endif // __BLACKLIST_H__

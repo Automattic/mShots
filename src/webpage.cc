@@ -1,7 +1,7 @@
 
 #include "./webpage.h"
 
-WebPage::WebPage() {
+WebPage::WebPage( QString p_user_agent ) : m_user_agent( p_user_agent ) {
 	QWebPage();
 	this->setForwardUnsupportedContent( true );
 	this->mainFrame()->setScrollBarPolicy( Qt::Horizontal, Qt::ScrollBarAlwaysOff );
@@ -23,9 +23,7 @@ WebPage::WebPage() {
 }
 
 QString WebPage::userAgentForUrl( const QUrl &url ) const {
-	// its a lie, but some sites check for compatability
-	return QString( "Mozilla/5.0 (X11; Linux x86_64; rv:10.0.12) Gecko/20100101 Firefox/10.0.12 Iceweasel/10.0.12 Snapper/1.0" );
-	// end of lies ;)
+    return m_user_agent;
 }
 
 void WebPage::neutraliseSSRF() {

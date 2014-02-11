@@ -13,7 +13,7 @@
 class WebPage: public QWebPage {
 	Q_OBJECT
 public:
-	explicit WebPage();
+	explicit WebPage( QString p_user_agent );
 
 	QString userAgentForUrl( const QUrl &url ) const;
 	bool javaScriptPrompt( QWebFrame *frame, const QString &msg, const QString &defaultValue, QString *result );
@@ -22,6 +22,9 @@ public:
 
 private slots:
 	void neutraliseSSRF();
+
+private:
+	QString m_user_agent;
 };
 
 #endif //__WEBPAGE_H__

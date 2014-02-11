@@ -1,15 +1,19 @@
 {
 	'targets':[ {
 		'target_name':'snapper',
-		'cflags_cc': [ '-fexceptions', '-O3', '-Wall' ],
+		'cflags_cc': [ '-fexceptions','-O3' ],
 		'sources':[
 				'src/main.cc',
 				'src/snapper.cc',
 				'src/webpage.cc',
 				'src/blacklist.cc',
+				'src/accessmanager.cc',
+				'src/accessreply.cc',
 				'src/snapper.moc.cc',
 				'src/webpage.moc.cc',
 				'src/blacklist.moc.cc',
+				'src/accessmanager.moc.cc',
+				'src/accessreply.moc.cc',
 		],
 		'conditions':[
 			['OS=="mac"',{

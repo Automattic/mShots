@@ -13,7 +13,7 @@ void Blacklist::loadList() {
 		QTextStream fin( &file );
 		v_BlacklistedIPs.clear();
 		v_BlacklistedSubnets.clear();
-	
+
 		while ( ! fin.atEnd() ) {
 			QString line = fin.readLine().trimmed();
 			if ( line.length() > 0 ) {
@@ -22,6 +22,8 @@ void Blacklist::loadList() {
 					QHostAddress blacklistIP( line );
 					if( ! blacklistIP.isNull() )
 						v_BlacklistedIPs.push_back( blacklistIP );
+					else
+						v_BlacklistedHosts.push_back( line );
 				} else {
 					v_BlacklistedSubnets.push_back( line );
 				}
@@ -46,6 +48,15 @@ void Blacklist::loadList() {
 		}
 		fileSchemas.close();
 	}
+}
+
+bool Blacklist::allowedHost( const QString checkHost ) const {
+	QVector<const QString>::Iterator it_Hosts = v_BlacklistedHosts.constBegin();
+	for ( ; it_Hosts != v_BlacklistedHosts.constEnd(); it_Hosts++ )
+		if ( *it_Hosts == checkHost )
+			return false;
+
+	return true;
 }
 
 bool Blacklist::allowedIP( QHostAddress checkIP ) const {
@@ -83,12 +94,16 @@ void Blacklist::permitURL( const QUrl ckeckHostURL ) {
 		std::cerr << "No host found in URL information" << std::endl;
 		emit permitSignal( HOST_INVALID );
 	} else {
-		QHostInfo::lookupHost( s_Host, this, SLOT( DNS_ReplySlot( QHostInfo ) ) );
+		if ( ! allowedHost( s_Host ) )
+			emit permitSignal( HOST_BLACKLISTED );
+		else
+			QHostInfo::lookupHost( s_Host, this, SLOT( DNS_ReplySlot( QHostInfo ) ) );
 	}
 }
 
 void Blacklist::DNS_ReplySlot( QHostInfo hostInfo ) {
 	if ( hostInfo.error() != QHostInfo::NoError ) {
+		std::cerr << "Error receiving DNS reply: " << hostInfo.errorString().toStdString().data() << std::endl;
 		emit permitSignal( HOST_NO_DNS );
 	} else {
 		foreach ( const QHostAddress &checkAddress, hostInfo.addresses() ) {

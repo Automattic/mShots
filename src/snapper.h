@@ -25,17 +25,40 @@
 
 #include "./webpage.h"
 #include "./blacklist.h"
+#include "./accessmanager.h"
 
-#define constWidth	1600
-#define constHeight	1200
+#define constWidth  1600
+#define constHeight 1200
 
-#define SUCCESS				0
-#define HOST_PERMITTED		0
-#define HOST_NO_DNS			1
-#define HOST_BLACKLISTED	2
-#define HOST_INVALIDSCHEMA	3
-#define HOST_INVALID		4
-#define GENERAL_ERROR		5
+#define SUCCESS             0
+#define HOST_PERMITTED      0
+#define HOST_NO_DNS         1
+#define HOST_BLACKLISTED    2
+#define HOST_INVALIDSCHEMA  3
+#define HOST_INVALID        4
+#define GENERAL_ERROR       5
+
+#define _DEBUG_             1
+
+#define COLOUR_black        "\033[22;30m"
+#define COLOUR_red          "\033[22;31m"
+#define COLOUR_green        "\033[22;32m"
+#define COLOUR_brown        "\033[22;33m"
+#define COLOUR_blue         "\033[22;34m"
+#define COLOUR_magenta      "\033[22;35m"
+#define COLOUR_cyan         "\033[22;36m"
+#define COLOUR_gray         "\033[22;37m"
+#define COLOUR_darkgray     "\033[01;30m"
+#define COLOUR_lightred     "\033[01;31m"
+#define COLOUR_lightgreen   "\033[01;32m"
+#define COLOUR_yellow       "\033[01;33m"
+#define COLOUR_lightblue    "\033[01;34m"
+#define COLOUR_lightmagenta "\033[01;35m"
+#define COLOUR_lightcyan    "\033[01;36m"
+#define COLOUR_white        "\033[01;37m"
+#define COLOUR_normal       "\033[0m"
+
+const QString s_ConfigRelativePath = "config/mshots.conf";
 
 class Snapper : public QObject {
 	Q_OBJECT
@@ -49,6 +72,7 @@ public:
 	void saveAsNotFound();
 	bool mainPageLoaded();
 	void reloadBlacklist();
+	void reloadConfig() { this->loadConfig(); }
 	void stopLoading();
 	int pageLoadProgress() { return m_progress; }
 	void setForceSnapshot() { m_forceSnapshot = true; }
@@ -58,16 +82,18 @@ public slots:
 
 private slots:
 	void frameLoad( bool okay );
-	void mainLoad( bool okay );
 	void loadProgress( int p_progress );
 	void handleSslErrors( QNetworkReply* reply, const QList<QSslError> &errors );
 	void handleAuthentication( QNetworkReply* reply, QAuthenticator* auth );
 	void downloadRequested( QNetworkRequest request );
 	void unsupportedContent( QNetworkReply* reply );
+	void onNetworkRequestFinished( QNetworkReply* );
 
 private:
-	WebPage m_page;
+	WebPage *m_page;
 	Blacklist m_blacklist;
+	AccessManager *m_gate_keeper;
+	QString m_user_agent;
 	QString m_filename;
 	double m_width;
 	double m_height;
@@ -75,8 +101,13 @@ private:
 	QUrl m_url;
 	v8::Persistent<v8::Function> m_callback;
 	void validate_path();
-	bool b_MainLoaded;
 	bool m_forceSnapshot;
+	bool m_redirecting;
+	int m_max_redirects;
+	int m_redirect_count;
+
+	void initWebpage();
+	void loadConfig();
 };
 
 #endif // _SNAPPER_H_
