@@ -6,8 +6,8 @@ Overview
 --------
 This application is split into four distinct components, the mshots PHP class (receiving requests from the WordPress mshots plugin),
 the node.JS cluster service to manage the filtered incoming requests passed on from the mshots class, the native node.JS module,
-Snapper, which performs the actual snapshot generation and custom compiled Qt5.1 libraries to run X-less in the command line
-server environment on Debian Linux (Wheezy). Note: The virtual frame buffer Kernel module (VFB) is required for the service.
+Snapper, which performs the actual snapshot generation, which runs X-less in the CLI server environment on Debian Linux (Wheezy).
+Note: The virtual frame buffer Kernel module (VFB) is required for the service.
 
 Installation for Development (Debian Wheezy)
 --------------------------------------------
@@ -18,13 +18,7 @@ If anything goes awry or is unclear in one of these steps, take a look at the "D
 
 2) Place the mshots folder in "/opt/", so the final path is "/opt/mshots/".
 
-3) You will need to download Qt5.1 source code. Apply the patch in the "deps" folder and use the compile options in the "deps" folder to ensure you get the required support for this service.
-
-4) Run the following commands to place the require files in "/usr/lib/".
-
-	> sudo cp -d /opt/mshots/deps/<platform>/lib/libQt5Core.so* /usr/lib/
-    > sudo cp -d /opt/mshots/deps/<platform>/lib/libQt5Network.so* /usr/lib/
-    > sudo cp -d /opt/mshots/deps/<platform>/lib/libQt5WebKitWidgets.so* /usr/lib/
+3) You will need to install the latest Qt libraries for your distro.
 
 5) mshots requires a logging library, install this with "sudo npm install log4js", while in the mshots root directory "/opt/mshots".
 
@@ -53,8 +47,7 @@ To compile the node module you will need to follow the following steps:
 	If it is not installed, install it with the command:
 
 	> sudo npm install -g node-gyp
-- For the compilation of the module you need the Qt5 header and Qt5.1 library files. These are provided as a separate tar file in the deps
-	folder and will need to be extracted into the "deps" folder.
+- For the compilation of the module you need the Qt5 header and Qt library files. These are provided by your distribution or are available from the qt-project.com website.
 - If you are installing onto Debian you will need to ensure that libssl is installed before proceeding to the next step.
 
 	> sudo apt-get install openssl
@@ -64,14 +57,7 @@ To compile the node module you will need to follow the following steps:
 
 	> sudo node-gyp build
 
-	The resulting file will be in the build/Release/ directory.
-- Before running the mshots node script, you will need to run the following commands:
-
-	> sudo cp -d /opt/mshots/deps/<platform>/lib/libQt5Core.so* /usr/lib/
-
-	> sudo cp -d /opt/mshots/deps/<platform>/lib/libQt5Network.so* /usr/lib/
-
-	> sudo cp -d /opt/mshots/deps/<platform>/lib/libQt5WebKitWidgets.so* /usr/lib/
+	The resulting file will be in the build/Release/ directory and should be copied to the /opt/mshots/lib/ directory.
 
 **mshots node.JS Program (code in "lib")**
 
@@ -81,8 +67,6 @@ The node program has two dependencies, the Snapper module above and the log4js m
 
 	> node lib/mshots -p portnumber -n numworkers
 
-**Custom Qt Compilation for Debian (headers and binaries must be in placed the relevant "deps" folder)**
+**QtWebKit**
 
-The Snapper node.JS module for Debian Linux required a custom compilation of Qt5.1, using the simple patch located in "deps/linux_x64/",
-and the compilation options in the same directory. The reason for modifification from the original was overcome a text/glyph rendering bug
-in Qt, which causes many sites to abruptly segfault.
+As mentioned above, the service requires the installation of the Qt libraries. Please install these for your platform before running
