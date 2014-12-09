@@ -16,6 +16,7 @@
 #include <QtNetwork>
 #include <QtGui>
 #include <QPainter>
+#include <QWebView>
 #include <QtWebKit>
 #include <QtWebKitWidgets/QWebPage>
 #include <QtWebKitWidgets/QWebFrame>
@@ -90,6 +91,7 @@ private slots:
 	void onNetworkRequestFinished( QNetworkReply* );
 
 private:
+    QWebView *m_view;
 	WebPage *m_page;
 	Blacklist m_blacklist;
 	AccessManager *m_gate_keeper;

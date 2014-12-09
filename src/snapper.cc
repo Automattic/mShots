@@ -3,7 +3,7 @@
 
 using namespace v8;
 
-Snapper::Snapper(): QObject(), m_page( NULL ), m_blacklist( this ), m_filename( "" ), m_width( constWidth ), m_height( constHeight ),
+Snapper::Snapper(): QObject(), m_view( NULL ), m_page( NULL ), m_blacklist( this ), m_filename( "" ), m_width( constWidth ), m_height( constHeight ),
 					m_progress( 0 ), m_url( "" ), m_forceSnapshot( false), m_redirecting( false ), m_redirect_count( 0 ) {
 	m_gate_keeper = new AccessManager( this );
 	m_gate_keeper->set_blacklister( &this->m_blacklist );
@@ -20,10 +20,14 @@ Snapper::Snapper(): QObject(), m_page( NULL ), m_blacklist( this ), m_filename( 
 }
 
 void Snapper::initWebpage() {
+    if ( m_view )
+        delete m_view;
 	if ( m_page )
 		delete m_page;
+    m_view = new QWebView();
 	m_page = new WebPage( m_user_agent );
-	m_page->setNetworkAccessManager( m_gate_keeper );
+    m_view->setPage( m_page );
+    m_page->setNetworkAccessManager( m_gate_keeper );
 
 	connect( m_page, SIGNAL( loadProgress( int ) ), this, SLOT( loadProgress( int ) ) );
 	connect( m_page, SIGNAL( downloadRequested( QNetworkRequest ) ), this, SLOT( downloadRequested( QNetworkRequest ) ) );
