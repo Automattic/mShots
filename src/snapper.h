@@ -16,10 +16,10 @@
 #include <QtNetwork>
 #include <QtGui>
 #include <QPainter>
-#include <QWebView>
 #include <QtWebKit>
 #include <QtWebKitWidgets/QWebPage>
 #include <QtWebKitWidgets/QWebFrame>
+//#include <QtWebKitWidgets/QWebView>
 #include <QImage>
 #include <QUrl>
 #include <QString>
@@ -39,7 +39,8 @@
 #define HOST_INVALID        4
 #define GENERAL_ERROR       5
 
-#define _DEBUG_             1
+// Uncomment to have debug messages sent to stdout
+//#define _DEBUG_             1
 
 #define COLOUR_black        "\033[22;30m"
 #define COLOUR_red          "\033[22;31m"
@@ -66,7 +67,7 @@ class Snapper : public QObject {
 public:
 	Snapper();
 	void setTargetSize( const double &p_width, const double &p_height );
-	void setCallbackFunction( v8::Persistent<v8::Function> p_callBack );
+	void setCallbackFunction( v8::Isolate* isolate, v8::CopyablePersistentTraits<v8::Function>::CopyablePersistent p_callBack );
 	void load( const QUrl &p_url, const QString &p_filename );
 	void saveThumbnail( const QUrl &p_url, const QString &p_filename, const double &p_width, const double &p_height );
 	void setBlankPage();
@@ -91,7 +92,7 @@ private slots:
 	void onNetworkRequestFinished( QNetworkReply* );
 
 private:
-    QWebView *m_view;
+	//QWebView *m_webview;
 	WebPage *m_page;
 	Blacklist m_blacklist;
 	AccessManager *m_gate_keeper;
@@ -101,7 +102,7 @@ private:
 	double m_height;
 	int m_progress;
 	QUrl m_url;
-	v8::Persistent<v8::Function> m_callback;
+	v8::CopyablePersistentTraits<v8::Function>::CopyablePersistent m_callback;
 	void validate_path();
 	bool m_forceSnapshot;
 	bool m_redirecting;
@@ -110,6 +111,7 @@ private:
 
 	void initWebpage();
 	void loadConfig();
+	void processCallback( QString err_msg, int status );
 };
 
 #endif // _SNAPPER_H_

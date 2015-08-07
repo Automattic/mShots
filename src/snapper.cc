@@ -3,7 +3,7 @@
 
 using namespace v8;
 
-Snapper::Snapper(): QObject(), m_view( NULL ), m_page( NULL ), m_blacklist( this ), m_filename( "" ), m_width( constWidth ), m_height( constHeight ),
+Snapper::Snapper(): QObject(), /*m_webview( NULL ),*/ m_page( NULL ), m_blacklist( this ), m_filename( "" ), m_width( constWidth ), m_height( constHeight ),
 					m_progress( 0 ), m_url( "" ), m_forceSnapshot( false), m_redirecting( false ), m_redirect_count( 0 ) {
 	m_gate_keeper = new AccessManager( this );
 	m_gate_keeper->set_blacklister( &this->m_blacklist );
@@ -20,14 +20,14 @@ Snapper::Snapper(): QObject(), m_view( NULL ), m_page( NULL ), m_blacklist( this
 }
 
 void Snapper::initWebpage() {
-    if ( m_view )
-        delete m_view;
 	if ( m_page )
 		delete m_page;
-    m_view = new QWebView();
+	//if ( m_webview )
+	//	delete m_webview;
+	//m_webview = new QWebView();
 	m_page = new WebPage( m_user_agent );
-    m_view->setPage( m_page );
-    m_page->setNetworkAccessManager( m_gate_keeper );
+	//m_webview->setPage( m_page );
+	m_page->setNetworkAccessManager( m_gate_keeper );
 
 	connect( m_page, SIGNAL( loadProgress( int ) ), this, SLOT( loadProgress( int ) ) );
 	connect( m_page, SIGNAL( downloadRequested( QNetworkRequest ) ), this, SLOT( downloadRequested( QNetworkRequest ) ) );
@@ -95,8 +95,8 @@ void Snapper::setTargetSize( const double &p_width, const double &p_height ) {
 	m_height = p_height;
 }
 
-void Snapper::setCallbackFunction( Persistent<Function> p_callback ) {
-	m_callback = p_callback;
+void Snapper::setCallbackFunction( Isolate* isolate, CopyablePersistentTraits<Function>::CopyablePersistent p_callback ) {
+	m_callback.Reset( isolate, p_callback );
 }
 
 void Snapper::handleAuthentication( QNetworkReply* reply, QAuthenticator* auth ) {
@@ -111,13 +111,10 @@ void Snapper::handleAuthentication( QNetworkReply* reply, QAuthenticator* auth )
 		QFile( m_filename ).remove();
 	QFile( "./public_html/icons/403.jpg" ).copy( m_filename );
 
-	const unsigned argc = 2;
 	QString err_msg = "This URL (";
 	err_msg += m_url.toString().toStdString().data();
 	err_msg += ") requires authentication. Using default 403 image.";
-	Handle<Value> argv[argc] = { String::New( err_msg.toStdString().data() ), Number::New( GENERAL_ERROR ) };
-	this->m_callback->Call( Context::GetCurrent()->Global(), argc, argv );
-	this->m_callback.Dispose();
+	this->processCallback( err_msg, GENERAL_ERROR );
 }
 
 void Snapper::saveAsNotFound() {
@@ -126,10 +123,11 @@ void Snapper::saveAsNotFound() {
 	#endif
 
 	if ( ! m_filename.isEmpty() ) {
-		if ( QFile( m_filename ).exists() ) {
-			QFile( m_filename ).remove();
+		// Only use the 404 image if we do not have a prevous image,
+		// which, in the case of an outage, would be a valid snapshot
+		if ( ! QFile( m_filename ).exists() ) {
+			QFile( "./public_html/icons/404.jpg" ).copy( m_filename );
 		}
-		QFile( "./public_html/icons/404.jpg" ).copy( m_filename );
 
 		struct timeval tval;
 		struct timezone tz;
@@ -137,6 +135,8 @@ void Snapper::saveAsNotFound() {
 
 		if ( retval == 0 ) {
 			utimbuf newtimes;
+			// Keep the "404" for 3600 seconds (1 hour), afterwhich it would
+			// be able to be requeued by the mtime check in mshots-class.php
 			newtimes.actime = tval.tv_sec - 82800;
 			newtimes.modtime = newtimes.actime;
 			retval = utime(m_filename.toStdString().data(), &newtimes);
@@ -184,12 +184,9 @@ void Snapper::stopLoading() {
 void Snapper::load( const QUrl &p_url, const QString &p_filename ) {
 	try {
 		if ( m_width > constWidth ) {
-			const unsigned argc = 2;
 			QString err_msg = "The width of the page is greater than the surface provided by the window manager.\nRequested a width of ";
 			err_msg += QString::number( m_width ) + ", but only have a surface of " + QString::number( constWidth ) + " available.";
-			Handle<Value> argv[argc] = { String::New( err_msg.toStdString().data() ), Number::New( GENERAL_ERROR ) };
-			this->m_callback->Call( Context::GetCurrent()->Global(), argc, argv );
-			this->m_callback.Dispose();
+			this->processCallback( err_msg, GENERAL_ERROR );
 			return;
 		}
 		#ifdef _DEBUG_
@@ -201,12 +198,8 @@ void Snapper::load( const QUrl &p_url, const QString &p_filename ) {
 	}
 	catch ( std::exception& ) {
 		this->saveAsNotFound();
-		const unsigned argc = 2;
-		QString err_msg = "Unknown error processing the Blacklist DNS call: ";
-		err_msg += m_url.toString().toStdString().data();
-		Handle<Value> argv[argc] = { String::New( err_msg.toStdString().data() ), Number::New( GENERAL_ERROR ) };
-		this->m_callback->Call( Context::GetCurrent()->Global(), argc, argv );
-		this->m_callback.Dispose();
+		QString err_msg = "Unknown error processing the Blacklist DNS call: " + m_url.toString();
+		this->processCallback( err_msg, GENERAL_ERROR );
 	}
 }
 
@@ -219,7 +212,6 @@ void Snapper::permitURL( int returnCode ) {
 			m_page->mainFrame()->load( m_url );
 		} else {
 			this->saveAsNotFound();
-			const unsigned argc = 2;
 			QString err_msg = "";
 			switch ( returnCode ) {
 				case HOST_NO_DNS:
@@ -241,19 +233,13 @@ void Snapper::permitURL( int returnCode ) {
 				err_msg += m_url.toString().toStdString().data();
 			else
 				err_msg += m_url.host().toStdString().data();
-			Handle<Value> argv[argc] = { String::New( err_msg.toStdString().data() ), Number::New( returnCode ) };
-			this->m_callback->Call( Context::GetCurrent()->Global(), argc, argv );
-			this->m_callback.Dispose();
+			this->processCallback( err_msg, returnCode );
 		}
 	}
 	catch ( std::exception& ) {
 		this->saveAsNotFound();
-		const unsigned argc = 2;
-		QString err_msg = "Error initialising the load of the URL: ";
-		err_msg += m_url.toString().toStdString().data();
-		Handle<Value> argv[argc] = { String::New( err_msg.toStdString().data() ), Number::New( GENERAL_ERROR ) };
-		this->m_callback->Call( Context::GetCurrent()->Global(), argc, argv );
-		this->m_callback.Dispose();
+		QString err_msg = "Error initialising the load of the URL: " + m_url.toString();
+		this->processCallback( err_msg, GENERAL_ERROR );
 	}
 }
 
@@ -363,6 +349,7 @@ void Snapper::onNetworkRequestFinished( QNetworkReply* reply ) {
 			this->frameLoad( false );
 		}
 	}
+    reply->deleteLater();
 }
 
 void Snapper::frameLoad( bool okay ) {
@@ -388,18 +375,11 @@ void Snapper::frameLoad( bool okay ) {
 		if ( m_filename.isEmpty() || m_url.isEmpty() ) {
 			return;
 		}
-		const unsigned argc = 2;
-		Handle<Value> argv[argc] = { String::New( "" ), Number::New( SUCCESS ) };
-		this->m_callback->Call( Context::GetCurrent()->Global(), argc, argv );
-		this->m_callback.Dispose();
+		this->processCallback( "", SUCCESS );
 	} else {
 		this->saveAsNotFound();
-		const unsigned argc = 2;
-		QString err_msg = "Error in loading the URL: ";
-		err_msg += m_url.toString().toStdString().data();
-		Handle<Value> argv[argc] = { String::New( err_msg.toStdString().data() ), Number::New( GENERAL_ERROR ) };
-		this->m_callback->Call( Context::GetCurrent()->Global(), argc, argv );
-		this->m_callback.Dispose();
+		QString err_msg = "Error in loading the URL: "+ m_url.toString();
+		this->processCallback( err_msg, GENERAL_ERROR );
 	}
 }
 
@@ -421,23 +401,26 @@ void Snapper::saveThumbnail( const QUrl &p_url, const QString &p_filename, const
 
 		if ( ! m_filename.isEmpty() ) {
 			if ( m_image.save( m_filename, "jpg", 90 ) ) {
-				const unsigned argc = 2;
-				Handle<Value> argv[argc] = { String::New( "" ), Number::New( SUCCESS ) };
-				this->m_callback->Call( Context::GetCurrent()->Global(), argc, argv );
-				this->m_callback.Dispose();
+				this->processCallback( "", SUCCESS );
 			} else {
-				const unsigned argc = 2;
-				Handle<Value> argv[argc] = { String::New( "Failed to save the snapshot image file." ),  Number::New( GENERAL_ERROR ) };
-				this->m_callback->Call( Context::GetCurrent()->Global(), argc, argv );
-				this->m_callback.Dispose();
+				this->processCallback( "Failed to save the snapshot image file.", GENERAL_ERROR );
 			}
 		}
 	} else {
-		QString err_msg = "incorrect saveThumbnail parameters";
-		const unsigned argc = 2;
-		Handle<Value> argv[argc] = { String::New( err_msg.toStdString().data() ), Number::New( GENERAL_ERROR ) };
-		this->m_callback->Call( Context::GetCurrent()->Global(), argc, argv );
-		this->m_callback.Dispose();
+		this->processCallback( "incorrect saveThumbnail parameters", GENERAL_ERROR );
 	}
 }
 
+void Snapper::processCallback( const QString err_msg, int status ) {
+	const unsigned argc = 2;
+	Isolate* isolate = Isolate::GetCurrent();
+	HandleScope scope( isolate );
+
+	Local<Value> argv[argc] = { String::NewFromUtf8( isolate, err_msg.toStdString().data() ),
+								Number::New( isolate, status ) };
+
+	Local<Function> cb_func = Local<Function>::New( isolate, this->m_callback );
+	cb_func->Call( isolate->GetCurrentContext()->Global(), argc, argv );
+
+	this->m_callback.Reset();
+}
