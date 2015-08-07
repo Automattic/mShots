@@ -16,6 +16,7 @@
 #include <sys/stat.h>
 #include <assert.h>
 #include <stdarg.h>
+#include <signal.h>
 
 #include <node.h>
 
@@ -64,8 +65,7 @@ static void segfault_handler( int sig, siginfo_t *si, void *unused ) {
     exit( -1 );
 }
 
-static QUrl UrlFromString( const QString &string )
-{
+static QUrl UrlFromString( const QString &string ) {
 	QString urlStr = string.trimmed();
 	QRegExp test( QLatin1String( "^[a-zA-Z]+\\:.*" ) );
 
@@ -87,8 +87,7 @@ static QUrl UrlFromString( const QString &string )
 	return QUrl( string, QUrl::TolerantMode );
 }
 
-Handle<Value> Exit( const Arguments& args ) {
-	HandleScope scope;
+void Exit( const v8::FunctionCallbackInfo<v8::Value>& info ) {
 	if ( NULL != websnap ) {
 		websnap->stopLoading();
 		websnap->setBlankPage();
@@ -96,152 +95,161 @@ Handle<Value> Exit( const Arguments& args ) {
 	}
 	if ( NULL != app )
 		app->quit();
-	return scope.Close( Undefined() );
+
+	info.GetReturnValue().SetUndefined();
 }
 
-Handle<Value> AbortDownload( const Arguments& args ) {
-	HandleScope scope;
+void AbortDownload( const v8::FunctionCallbackInfo<v8::Value>& info ) {
 	if ( NULL != websnap ) {
 		websnap->stopLoading();
 		websnap->setBlankPage();
 	}
-	return scope.Close( Undefined() );
+	info.GetReturnValue().SetUndefined();
 }
 
-Handle<Value> stopLoadingPage( const Arguments& args ) {
-	HandleScope scope;
+void stopLoadingPage( const v8::FunctionCallbackInfo<v8::Value>& info ) {
 	if ( NULL != websnap ) {
 		websnap->stopLoading();
 	}
-	return scope.Close( Undefined() );
+	info.GetReturnValue().SetUndefined();
 }
 
-Handle<Value> setForceSnapshot( const Arguments& args ) {
-	HandleScope scope;
+void setForceSnapshot( const v8::FunctionCallbackInfo<v8::Value>& info ) {
 	if ( NULL != websnap ) {
 		websnap->setForceSnapshot();
 	}
-	return scope.Close( Undefined() );
+	info.GetReturnValue().SetUndefined();
 }
 
-Handle<Value> pageLoadProgress( const Arguments& args ) {
-	HandleScope scope;
+void pageLoadProgress( const v8::FunctionCallbackInfo<v8::Value>& info ) {
 	if ( NULL != websnap )
-		return scope.Close( Number::New( websnap->pageLoadProgress() ) );
+		info.GetReturnValue().Set( websnap->pageLoadProgress() );
 	else
-		return scope.Close( Number::New( 0 ) );
+		info.GetReturnValue().Set( 0 );
 }
 
-Handle<Value> SetBlankPage( const Arguments& args ) {
-	HandleScope scope;
+void SetBlankPage( const v8::FunctionCallbackInfo<v8::Value>& info ) {
 	if ( NULL != websnap ) {
 		websnap->setBlankPage();
 	}
-	return scope.Close( Undefined() );
+	info.GetReturnValue().SetUndefined();
 }
 
-Handle<Value> ReloadBlacklistConfig( const Arguments& args ) {
-	HandleScope scope;
+void ReloadBlacklistConfig( const v8::FunctionCallbackInfo<v8::Value>& info ) {
 	if ( NULL != websnap ) {
 		websnap->reloadBlacklist();
 	}
-	return scope.Close( Undefined() );
+	info.GetReturnValue().SetUndefined();
 }
 
-Handle<Value> ReloadConfig( const Arguments& args ) {
-	HandleScope scope;
+void ReloadConfig( const v8::FunctionCallbackInfo<v8::Value>& info ) {
 	if ( NULL != websnap ) {
 		websnap->reloadConfig();
 	}
-	return scope.Close( Undefined() );
+	info.GetReturnValue().SetUndefined();
 }
 
-Handle<Value> ProcessEvents( const Arguments& args ) {
-	HandleScope scope;
+void ProcessEvents( const v8::FunctionCallbackInfo<v8::Value>& info ) {
 	if ( app->hasPendingEvents() )
 		app->processEvents();
-	return scope.Close( Undefined() );
+	info.GetReturnValue().SetUndefined();
 }
 
-Handle<Value> SaveThumb( const Arguments& args ) {
-	HandleScope scope;
+void SaveThumb( const v8::FunctionCallbackInfo<v8::Value>& args ) {
+	args.GetReturnValue().SetUndefined();
+	Isolate* isolate = args.GetIsolate();
+	HandleScope scope( isolate );
 
-	if (args.Length() < 5) {
-		ThrowException( Exception::TypeError( String::New( "Wrong number of arguments" ) ) );
-		return scope.Close( Undefined() );
+	if ( args.Length() < 5 ) {
+		isolate->ThrowException( Exception::TypeError(
+			String::NewFromUtf8( isolate, "Wrong number of arguments" ) ) );
+		return;
 	}
 
 	if ( ! args[2]->IsNumber() || ! args[3]->IsNumber() ) {
-		ThrowException( Exception::TypeError( String::New( "The width and height arguments are not valid") ) );
-		return scope.Close( Undefined() );
+		isolate->ThrowException( Exception::TypeError(
+			String::NewFromUtf8( isolate, "The width and height arguments are not valid" ) ) );
+		return;
 	}
 
 	if ( ! args[4]->IsFunction() ) {
-		ThrowException( Exception::TypeError( String::New( "You have not provided a callback function as the 4th parameter" ) ) );
-		return scope.Close( Undefined() );
+		isolate->ThrowException( Exception::TypeError(
+			String::NewFromUtf8( isolate, "You have not provided a callback function as the 4th parameter" ) ) );
+		return;
 	}
 
 	try {
-		String::AsciiValue sURL( args[0]->ToString() );
+		String::Utf8Value sURL( args[0]->ToString() );
 		QString pURL = *sURL;
-		String::AsciiValue sFileName( args[1]->ToString() );
+		String::Utf8Value sFileName( args[1]->ToString() );
 		QString pFileName = *sFileName;
 
-		websnap->setCallbackFunction( Persistent<Function>::New( Local<Function>::Cast( args[4] ) ) );
+		Local<Function> cb = Local<Function>::Cast( args[4] );
+		CopyablePersistentTraits<Function>::CopyablePersistent percy( isolate, cb );
+
+		websnap->setCallbackFunction( isolate, percy );
 		websnap->saveThumbnail( UrlFromString( pURL ), pFileName, args[2]->NumberValue(), args[3]->NumberValue() );
 	}
 	catch (std::exception ex) {
-		ThrowException(Exception::TypeError( String::New( "Failed to load the url" ) ) );
+		isolate->ThrowException(Exception::TypeError(
+			String::NewFromUtf8( isolate, "Failed to load the url" ) ) );
 	}
-	return scope.Close( Undefined() );
 }
 
-Handle<Value> LoadPage( const Arguments& args ) {
-	HandleScope scope;
+void LoadPage( const v8::FunctionCallbackInfo<v8::Value>& args ) {
+	args.GetReturnValue().SetUndefined();
+	Isolate* isolate = args.GetIsolate();
+	HandleScope scope( isolate );
 
 	if ( args.Length() < 5 ) {
-		ThrowException(Exception::TypeError( String::New( "Wrong number of arguments" ) ) );
-		return scope.Close( Undefined() );
+		isolate->ThrowException(Exception::TypeError(
+			String::NewFromUtf8( isolate, "Wrong number of arguments" ) ) );
+		return;
 	}
 
 	if ( ! args[2]->IsNumber() || ! args[3]->IsNumber() ) {
-		ThrowException( Exception::TypeError( String::New( "The width and height arguments are not valid" ) ) );
-		return scope.Close( Undefined() );
+		isolate->ThrowException( Exception::TypeError(
+			String::NewFromUtf8( isolate, "The width and height arguments are not valid" ) ) );
+		return;
 	}
 
 	if ( ! args[4]->IsFunction() ) {
-		ThrowException( Exception::TypeError( String::New( "You have not provided a callback function as the 4th parameter" ) ) );
-		return scope.Close( Undefined() );
+		isolate->ThrowException( Exception::TypeError(
+			String::NewFromUtf8( isolate, "You have not provided a callback function as the 4th parameter" ) ) );
+		return;
 	}
 
 	try {
-		String::AsciiValue sURL( args[0]->ToString() );
+		String::Utf8Value sURL( args[0]->ToString() );
 		QString pURL = *sURL;
-		String::AsciiValue sFileName( args[1]->ToString() );
+		String::Utf8Value sFileName( args[1]->ToString() );
 		QString pFileName = *sFileName;
 
-		websnap->setCallbackFunction( Persistent<Function>::New( Local<Function>::Cast( args[4] ) ) );
+		Local<Function> cb = Local<Function>::Cast( args[4] );
+		CopyablePersistentTraits<Function>::CopyablePersistent percy( isolate, cb );
+
+		websnap->setCallbackFunction( isolate, percy );
 		websnap->setTargetSize( args[2]->NumberValue(), args[3]->NumberValue() );
 		websnap->load( UrlFromString( pURL ), pFileName );
 	}
 	catch (std::exception ex) {
-		ThrowException( Exception::TypeError( String::New( "Failed to load the url" ) ) );
+		isolate->ThrowException( Exception::TypeError(
+			String::NewFromUtf8( isolate, "Failed to load the url" ) ) );
 	}
-	return scope.Close( Undefined() );
 }
 
 void Initialise( Handle<Object> exports) {
-	exports->Set( String::NewSymbol( "load_page" ), FunctionTemplate::New( LoadPage )->GetFunction() );
-	exports->Set( String::NewSymbol( "save_thumbnail" ), FunctionTemplate::New( SaveThumb )->GetFunction() );
-	exports->Set( String::NewSymbol( "exit" ), FunctionTemplate::New( Exit )->GetFunction() );
-	exports->Set( String::NewSymbol( "processEvents" ), FunctionTemplate::New( ProcessEvents )->GetFunction() );
-	exports->Set( String::NewSymbol( "abortDownload" ), FunctionTemplate::New( AbortDownload )->GetFunction() );
-	exports->Set( String::NewSymbol( "setBlankPage" ), FunctionTemplate::New( SetBlankPage )->GetFunction() );
-	exports->Set( String::NewSymbol( "stopLoadingPage" ), FunctionTemplate::New( stopLoadingPage )->GetFunction() );
-	exports->Set( String::NewSymbol( "setForceSnapshot" ), FunctionTemplate::New( setForceSnapshot )->GetFunction() );
-	exports->Set( String::NewSymbol( "pageLoadProgress" ), FunctionTemplate::New( pageLoadProgress )->GetFunction() );
-	exports->Set( String::NewSymbol( "reloadBlacklistConfig" ), FunctionTemplate::New( ReloadBlacklistConfig )->GetFunction() );
-	exports->Set( String::NewSymbol( "reloadConfig" ), FunctionTemplate::New( ReloadConfig )->GetFunction() );
+	NODE_SET_METHOD( exports, "load_page", LoadPage );
+	NODE_SET_METHOD( exports, "save_thumbnail", SaveThumb );
+	NODE_SET_METHOD( exports, "exit", Exit );
+	NODE_SET_METHOD( exports, "processEvents", ProcessEvents );
+	NODE_SET_METHOD( exports, "abortDownload", AbortDownload );
+	NODE_SET_METHOD( exports, "setBlankPage", SetBlankPage );
+	NODE_SET_METHOD( exports, "stopLoadingPage", stopLoadingPage );
+	NODE_SET_METHOD( exports, "setForceSnapshot", setForceSnapshot );
+	NODE_SET_METHOD( exports, "pageLoadProgress", pageLoadProgress );
+	NODE_SET_METHOD( exports, "reloadBlacklistConfig", ReloadBlacklistConfig );
+	NODE_SET_METHOD( exports, "reloadConfig", ReloadConfig );
 
 	struct sigaction sa;
     memset( &sa, 0, sizeof( struct sigaction ) );
