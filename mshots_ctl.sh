@@ -47,6 +47,7 @@ function startservice {
 		echo "mShots.JS service is already running"
 		exit 1
 	fi
+
 	running=`lsmod | grep vfb | awk '{ print $(1) }'`
 	if [ -z $running ] ; then
 		echo "loading vfb"
@@ -56,7 +57,7 @@ function startservice {
 	else
 		echo "vfb already loaded, skipping"
 	fi
-	# create the required log directories
+
 	if [ ! -d "${INSTALL_DIR}/logs" ]; then
 		mkdir "${INSTALL_DIR}/logs"
 	fi
@@ -64,7 +65,7 @@ function startservice {
 		mkdir "${INSTALL_DIR}/stats"
 	fi
 	if [ -z "$PORT" ]; then
-		echo "PORT not specified. Define it on this script"
+		echo "PORT not specified. Define it in this script"
 		exit 1
 	fi
 
@@ -74,7 +75,7 @@ function startservice {
 	else
 		echo "Some orphaned Worker threads found from a previous Master:"
 	fi
-	while [ $pid -gt 0  ]; do
+	while [ $pid -gt 0 ]; do
 		echo "Killing orphaned Worker thread: $pid"
 		kill -s 9 $pid
 		pid="`ps -ef | grep 'mShots.JS - Worker' | grep -v 'grep' | awk 'NR==1 { print $(2) }'`"
@@ -82,55 +83,38 @@ function startservice {
 			pid=0
 		fi
 	done
+
 	echo "Starting mShots.JS"
-    (
-        su - wpcom -c "bash -c 'cd ${INSTALL_DIR} ; ( /usr/local/bin/node ${INSTALL_DIR}/lib/mshots.js -p $PORT -n $WORKERS 2>&1 )&'"
-        sleep 1
-        pid="`ps -ef | grep 'mShots.JS - Master' | grep -v 'grep' | awk ' { print $(2) }'`"
-        if [ -z $pid ]; then
-            pid=0
-        fi
-        echo $pid > /var/run/mshots.pid
-    )
+	ARGS="${INSTALL_DIR}/lib/mshots.js -p $PORT -n $WORKERS 2"
+	start-stop-daemon -S -q -m -b --pidfile /var/run/mshots.pid --exec /usr/local/node/bin/node \
+					--chuid wpcom:wpcom --chdir $INSTALL_DIR -- $ARGS
+	sleep 1
+
+	echo "Starting mShots reaper daemon"
+	start-stop-daemon -S -q -m -b --pidfile /var/run/mshots-reaper.pid --exec /opt/mshots/reaper/reaper
 }
 
 function stopservice {
-	pid="`ps -ef | grep 'mShots.JS - Master' | grep -v 'grep' | awk ' { print $(2) }'`"
-	if [ -z $pid ]; then
-		pid=0
-	fi
-	if [ $pid -gt 0 ]; then
-		echo "Sending the master mShots.JS process the shutdown signal."
-		kill -s 1 $pid
-		sleep 3
-	else
-		echo "There is no mShots.JS Master process running."
-		echo "checking for orphaned Workers."
-		pid="`ps -ef | grep 'mShots.JS - Worker' | grep -v 'grep' | awk 'NR==1 { print $(2) }'`"
-		if [ -z $pid ]; then
-			pid=0
-			echo "No orphaned Workers found."
-		fi
-		while [ $pid -gt 0  ]; do
-			echo "Killing orphaned Worker thread: $pid"
-			kill -s 9 $pid
-			pid="`ps -ef | grep 'mShots.JS - Worker' | grep -v 'grep' | awk 'NR==1 { print $(2) }'`"
-			if [ -z $pid ]; then
-				pid=0
-			fi
-		done
-	fi
+	echo "Stopping mShots reaper daemon"
+	start-stop-daemon --stop -q --retry=TERM/5/KILL/5 --pidfile /var/run/mshots-reaper.pid --name reaper
+
+	echo "Stopping mShots"
+	start-stop-daemon --stop -q --retry=TERM/10/KILL/5 --pidfile /var/run/mshots.pid --name "mShots.JS - Mas"
+	sleep 2
+	start-stop-daemon --stop -q --oknodo --retry=0/10/KILL/5 --name "mShots.JS - Wor"
+
+	rm -f /var/run/mshots-reaper.pid
 	rm -f /var/run/mshots.pid
 }
 
 function reload_config {
-	pid="`ps -ef | grep 'mShots.JS - Master' | grep -v 'grep' | awk ' { print $(2) }'`"
+	pid="`cat /var/run/mshots.pid`"
 	if [ -z $pid ]; then
 		pid=0
 	fi
 	if [ $pid -gt 0 ]; then
 		echo "Sending the master mShots.JS process the reload signal."
-		kill -s SIGUSR2 $pid
+		start-stop-daemon -K -s 12 -q --pidfile /var/run/mshots.pid
 	else
 		echo "There is no mShots.JS Master process running to receive the reload signal."
 	fi
