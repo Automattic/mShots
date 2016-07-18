@@ -1,9 +1,10 @@
 
 #include "./snapper.h"
+#include <QCryptographicHash>
 
 using namespace v8;
 
-Snapper::Snapper(): QObject(), /*m_webview( NULL ),*/ m_page( NULL ), m_blacklist( this ), m_filename( "" ), m_width( constWidth ), m_height( constHeight ),
+Snapper::Snapper(): QObject(), /*m_webview( NULL ),*/ m_page( NULL ), m_blacklist( this ), m_filename( "" ), m_width( maxWidth ), m_height( maxHeight ),
 					m_progress( 0 ), m_url( "" ), m_forceSnapshot( false), m_redirecting( false ), m_redirect_count( 0 ) {
 	m_gate_keeper = new AccessManager( this );
 	m_gate_keeper->set_blacklister( &this->m_blacklist );
@@ -170,6 +171,66 @@ void Snapper::validate_path() {
 	}
 }
 
+bool Snapper::filenameValid( const QString &p_url ) const {
+	QCryptographicHash mdFiver( QCryptographicHash::Md5 );
+	mdFiver.addData( p_url.toStdString().c_str(), p_url.length() );
+	QString s_filename = mdFiver.result().toHex();
+
+	QStringList url_parts = p_url.split( "://" );
+	QString s_host = "";
+	if ( url_parts.length() > 1 )
+		s_host = url_parts[1].split( "/" )[0];
+	else
+		s_host = url_parts[0].split( "/" )[0];
+
+	#ifdef _DEBUG_
+	std::cerr << "p_url = " << p_url.toStdString().c_str() << " == " << s_filename.toStdString().c_str() << std::endl;
+	std::cerr << "s_host = " << s_host.toLower().toStdString().c_str();
+	#endif
+
+	QCryptographicHash shaOne( QCryptographicHash::Sha1 );
+	shaOne.addData( s_host.toLower().toStdString().c_str(), s_host.length() );
+	s_host = shaOne.result().toHex();
+
+	#ifdef _DEBUG_
+	std::cerr << s_host.toStdString().c_str() << std::endl;
+	#endif
+
+	QString viewport = "";
+	if ( m_width != defaultWidth || m_height != defaultHeight )
+		viewport = "_" + QString::number( m_width ) + "x" + QString::number( m_height );
+
+	QString c_filename = s_LocationBase + s_host.left( 3 ) + "/" + s_host + "/" + s_filename + viewport + ".jpg";
+
+	#ifdef _DEBUG_
+	std::cerr << "check: m_filename = " << c_filename.toStdString().c_str() << std::endl;
+	#endif
+
+	return ( c_filename == m_filename );
+}
+
+QUrl Snapper::UrlFromString( const QString &string ) const {
+	QString urlStr = string.trimmed();
+	QRegExp test( QLatin1String( "^[a-zA-Z]+\\:.*" ) );
+
+	bool hasSchema = test.exactMatch( urlStr );
+	if ( hasSchema ) {
+		QUrl url( urlStr, QUrl::TolerantMode );
+		if ( url.isValid() )
+			return url;
+	} else {
+		int dotIndex = urlStr.indexOf( QLatin1Char( '.' ) );
+		if ( -1 != dotIndex ) {
+			QString prefix = urlStr.left( dotIndex ).toLower();
+			QString schema = ( prefix == QLatin1String( "ftp" ) ) ? prefix : QLatin1String( "http" );
+			QUrl url( schema + QLatin1String( "://" ) + urlStr, QUrl::TolerantMode );
+			if ( url.isValid() )
+				return url;
+		}
+	}
+	return QUrl( string, QUrl::TolerantMode );
+}
+
 void Snapper::stopLoading() {
 	#ifdef _DEBUG_
 	std::cerr << COLOUR_yellow << "stopLoading:" << COLOUR_normal << " m_filename = " << m_filename.toStdString().data() << std::endl;
@@ -181,11 +242,11 @@ void Snapper::stopLoading() {
 	}
 }
 
-void Snapper::load( const QUrl &p_url, const QString &p_filename ) {
+void Snapper::load( const QString &p_url, const QString &p_filename ) {
 	try {
-		if ( m_width > constWidth ) {
+		if ( m_width > maxWidth ) {
 			QString err_msg = "The width of the page is greater than the surface provided by the window manager.\nRequested a width of ";
-			err_msg += QString::number( m_width ) + ", but only have a surface of " + QString::number( constWidth ) + " available.";
+			err_msg += QString::number( m_width ) + ", but only have a surface of " + QString::number( maxWidth ) + " available.";
 			this->processCallback( err_msg, GENERAL_ERROR );
 			return;
 		}
@@ -193,8 +254,12 @@ void Snapper::load( const QUrl &p_url, const QString &p_filename ) {
 		std::cerr << "load: m_filename = " << p_filename.toStdString().data() << std::endl;
 		#endif
 		m_filename = p_filename;
-		m_url.setUrl( p_url.toString() );
-		m_blacklist.permitURL( p_url );
+		if ( ! this->filenameValid( p_url ) ) {
+			this->processCallback( "The specified filename is not valid.", GENERAL_ERROR );
+			return;
+		}
+		m_url = UrlFromString( p_url );
+		m_blacklist.permitURL( m_url );
 	}
 	catch ( std::exception& ) {
 		this->saveAsNotFound();
@@ -221,7 +286,7 @@ void Snapper::permitURL( int returnCode ) {
 					err_msg = "The requested host was blocked, as it is Blacklisted: ";
 					break;
 				case HOST_INVALIDSCHEMA:
-					err_msg = "The requested host schema is not allowed: ";
+					err_msg = "The requested host scheme is not allowed: ";
 					break;
 				case HOST_INVALID:
 					err_msg = "The requested host is invalid: ";
@@ -349,7 +414,7 @@ void Snapper::onNetworkRequestFinished( QNetworkReply* reply ) {
 			this->frameLoad( false );
 		}
 	}
-    reply->deleteLater();
+	reply->deleteLater();
 }
 
 void Snapper::frameLoad( bool okay ) {

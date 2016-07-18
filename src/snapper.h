@@ -28,8 +28,10 @@
 #include "./blacklist.h"
 #include "./accessmanager.h"
 
-#define constWidth  1600
-#define constHeight 1200
+#define maxWidth  1600
+#define maxHeight 1200
+#define defaultWidth 1280
+#define defaultHeight 960
 
 #define SUCCESS             0
 #define HOST_PERMITTED      0
@@ -61,6 +63,7 @@
 #define COLOUR_normal       "\033[0m"
 
 const QString s_ConfigRelativePath = "config/mshots.conf";
+const QString s_LocationBase = "/opt/mshots/public_html/thumbnails/";
 
 class Snapper : public QObject {
 	Q_OBJECT
@@ -68,7 +71,7 @@ public:
 	Snapper();
 	void setTargetSize( const double &p_width, const double &p_height );
 	void setCallbackFunction( v8::Isolate* isolate, v8::CopyablePersistentTraits<v8::Function>::CopyablePersistent p_callBack );
-	void load( const QUrl &p_url, const QString &p_filename );
+	void load( const QString &p_url, const QString &p_filename );
 	void saveThumbnail( const QUrl &p_url, const QString &p_filename, const double &p_width, const double &p_height );
 	void setBlankPage();
 	void saveAsNotFound();
@@ -112,6 +115,8 @@ private:
 	void initWebpage();
 	void loadConfig();
 	void processCallback( QString err_msg, int status );
+	bool filenameValid( const QString &p_url ) const;
+	QUrl UrlFromString( const QString &string ) const;
 };
 
 #endif // _SNAPPER_H_

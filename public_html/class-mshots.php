@@ -1,4 +1,5 @@
 <?php
+
 if ( ! class_exists( 'mShots' ) ) {
 
 	class mShots {
@@ -9,11 +10,20 @@ if ( ! class_exists( 'mShots' ) ) {
 		const location_base = '/opt/mshots/public_html/thumbnails';
 		const snapshot_default = 'https://s0.wp.com/wp-content/plugins/mshots/default.gif';
 
+		const VIEWPORT_MAX_W = 1600;
+		const VIEWPORT_MAX_H = 1200;
+		const VIEWPORT_MIN_W = 320;
+		const VIEWPORT_MIN_H = 320;
+		const VIEWPORT_DEFAULT_W = 1280;
+		const VIEWPORT_DEFAULT_H = 960;
+
 		private $snapshot_url = "";
 		private $snapshot_file = "";
 		private $parsed_url = "";
 		private $requeue = false;
 		private $invalidate = false;
+		private $viewport_w = self::VIEWPORT_DEFAULT_W;
+		private $viewport_h = self::VIEWPORT_DEFAULT_H;
 
 		function __construct() {
 			ob_start();
@@ -30,17 +40,8 @@ if ( ! class_exists( 'mShots' ) ) {
 				}
 			}
 
-			if ( $array_check[1] != 'v1' )
+			if ( 2 > count( $array_check ) || $array_check[1] != 'v1' )
 				$this->my404();
-
-			for ($checkLoop = 2;  $checkLoop < count($array_check); $checkLoop++) {
-				if ( false !== strpos( urldecode( $array_check[ $checkLoop ] ), '127.0.0.' ) )
-					$this->my404();
-				if ( false !== strpos( urldecode( $array_check[ $checkLoop ] ), '::1' ) )
-					$this->my404();
-				if ( false !== strpos( urldecode( $array_check[ $checkLoop ] ), 'localhost' ) )
-					$this->my404();
-			}
 
 			if ( ( isset( $_GET[ 'requeue' ] ) && "true" == $_GET[ 'requeue' ] ) ) {
 				$this->requeue = true;
@@ -60,6 +61,22 @@ if ( ! class_exists( 'mShots' ) ) {
 			}
 			if ( 0 === strpos( $this->snapshot_url, "http://twitter.com/" ) ) {
 				$this->snapshot_url = "https://twitter.com/" . substr( $this->snapshot_url, 19, strlen( $this->snapshot_url ) );
+			}
+
+			if ( isset( $_GET[ 'vpw' ] ) ) {
+				$this->viewport_w = intval( $_GET[ 'vpw' ] );
+				if ( $this->viewport_w > self::VIEWPORT_MAX_W )
+					$this->viewport_w = self::VIEWPORT_MAX_W;
+				else if ( $this->viewport_w < self::VIEWPORT_MIN_W )
+					$this->viewport_w = self::VIEWPORT_MIN_W;
+			}
+
+			if ( isset( $_GET[ 'vph' ] ) ) {
+				$this->viewport_h = intval( $_GET[ 'vph' ] );
+				if ( $this->viewport_h > self::VIEWPORT_MAX_H )
+					$this->viewport_h = self::VIEWPORT_MAX_H;
+				else if ( $this->viewport_h < self::VIEWPORT_MIN_H )
+					$this->viewport_h = self::VIEWPORT_MIN_H;
 			}
 
 			$this->snapshot_file = $this->resolve_filename( $this->snapshot_url );
@@ -83,14 +100,32 @@ if ( ! class_exists( 'mShots' ) ) {
 			memcache_set( $m, $urlkey, 1, 0, 300 );
 
 			$requeue_url = self::renderer . "/queue?url=" . rawurlencode( $this->snapshot_url ) . "&f=" . urlencode( $this->snapshot_file );
-			$retval = file_get_contents( $requeue_url );
-			$tries = 1;
+			if ( $this->viewport_w != self::VIEWPORT_DEFAULT_W || $this->viewport_h != self::VIEWPORT_DEFAULT_H )
+				$requeue_url .= '&vpw=' . $this->viewport_w . '&vph=' . $this->viewport_h;
 
-			while ( ( false === $retval ) && ( $tries <= 5 ) ) {
+			$ch = curl_init( $requeue_url );
+			curl_setopt( $ch, CURLOPT_TIMEOUT, 10 );
+			curl_exec( $ch );
+			$http_code = curl_getinfo( $ch, CURLINFO_HTTP_CODE );
+			curl_close( $ch );
+
+			$tries = 0;
+			while ( ( 200 != $http_code ) && ( $tries < 3 ) ) {
 				sleep( 1 );	// in the event that the failed call is due to a mShots.js service restart,
 							// we need to be a little patient as the service comes back up
-				$retval = file_get_contents( $requeue_url );
+				$ch = curl_init( $requeue_url );
+				curl_setopt( $ch, CURLOPT_TIMEOUT, 10 );
+				curl_exec( $ch );
+				$http_code = curl_getinfo( $ch, CURLINFO_HTTP_CODE );
+				curl_close( $ch );
 				$tries++;
+			}
+
+			if ( ( 200 != $http_code ) && ( $tries >= 3 ) ) {
+				error_log( "failed to queue '$requeue_url'" );
+			}
+			if ( true == $this->invalidate ) {
+				$this->invalidate_snapshot( $this->snapshot_url );
 			}
 		}
 
@@ -109,7 +144,6 @@ if ( ! class_exists( 'mShots' ) ) {
 					header( "Cache-Control: public, max-age=43200" );
 				}
 			}
-			header("Content-Type: image/jpeg");
 			$this->image_resize_and_output( $this->snapshot_file );
 		}
 
@@ -125,7 +159,7 @@ if ( ! class_exists( 'mShots' ) ) {
 		public function send_default_image() {
 			$this->requeue = true;
 			$matches = array();
-			if (preg_match( '#^http(s)?://([^/]+)/([^/]+)#i' , $this->snapshot_url , $matches ) ) {
+			if ( preg_match( '#^http(s)?://([^/]+)/([^/]+)#i' , $this->snapshot_url , $matches ) ) {
 				$top_level_url = "http" . $matches[1] . "://" . $matches[2] . "/";
 				$toplevel_snapshot_file = $this->resolve_filename( $top_level_url );
 				if ( file_exists( $toplevel_snapshot_file ) ) {
@@ -148,6 +182,7 @@ if ( ! class_exists( 'mShots' ) ) {
 		private function image_resize_and_output( $image_filename ) {
 			try {
 				if ( $image = imagecreatefromstring( file_get_contents( $image_filename ) ) ) {
+					header("Content-Type: image/jpeg");
 					$width = imagesx($image);
 					$height = imagesy($image);
 					$original_aspect = $width / $height;
@@ -176,6 +211,17 @@ if ( ! class_exists( 'mShots' ) ) {
 						imagejpeg( $thumb, null, 95 );
 					}
 				} else {
+					error_log( "error processing filename : " . $image_filename );
+					if ( 0 < strlen( $image_filename ) ) {
+						clearstatcache();
+						if ( file_exists( $image_filename ) && 0 == filesize( $image_filename ) ) {
+							error_log( 'file was zero length, removed and now requeuing' );
+							@unlink( $image_filename );
+							$this->send_default_image();
+							$this->requeue_snapshot();
+							die();
+						}
+					}
 					$this->my404();
 				}
 			}
@@ -204,10 +250,17 @@ if ( ! class_exists( 'mShots' ) ) {
 		}
 
 		private function resolve_filename( $snap_url ) {
-			$url = @parse_url( $snap_url );
-			$host = sha1( strtolower( $url[ 'host' ] ) );
+			$url_parts = explode( '://', $snap_url );
+			if ( 1 < count( $url_parts ) )
+				$s_host = explode( '/', $url_parts[1] )[0];
+			else
+				$s_host = explode( '/', $url_parts[0] )[0];
+			$host = sha1( strtolower( $s_host ) );
 			$file = md5( $snap_url );
-			$fullpath = self::location_base . "/" . substr( $host, 0, 3 ) . "/" . $host . "/" . $file . ".jpg";
+			$viewport = '';
+			if ( $this->viewport_w != self::VIEWPORT_DEFAULT_W || $this->viewport_h != self::VIEWPORT_DEFAULT_H )
+				$viewport = '_' . $this->viewport_w . 'x' . $this->viewport_h;
+			$fullpath = self::location_base . '/' . substr( $host, 0, 3 ) . '/' . $host . '/' . $file . $viewport. '.jpg';
 
 			return $fullpath;
 		}
@@ -218,6 +271,15 @@ if ( ! class_exists( 'mShots' ) ) {
 				rawurlencode( $url )
 				);
 		}
+
+		private function invalidate_snapshot( $snapshot_url ) {
+			$uri = str_replace( '&requeue=true', '', $_SERVER['REQUEST_URI'] );
+			$uri = str_replace( '?requeue=true', '', $uri );
+			$this->purge_snapshot( $uri );
+		}
+
+		private function purge_snapshot( $purge_url ) {
+			// Put your content PURGE calls here.
+		}
 	}
 }
-?>
