@@ -173,7 +173,7 @@ void Snapper::validate_path() {
 
 bool Snapper::filenameValid( const QString &p_url ) const {
 	QCryptographicHash mdFiver( QCryptographicHash::Md5 );
-	mdFiver.addData( p_url.toStdString().c_str(), p_url.length() );
+	mdFiver.addData( p_url.toUtf8(), p_url.toUtf8().length() );
 	QString s_filename = mdFiver.result().toHex();
 
 	QStringList url_parts = p_url.split( "://" );
@@ -189,7 +189,7 @@ bool Snapper::filenameValid( const QString &p_url ) const {
 	#endif
 
 	QCryptographicHash shaOne( QCryptographicHash::Sha1 );
-	shaOne.addData( s_host.toLower().toStdString().c_str(), s_host.length() );
+	shaOne.addData( s_host.toLower().toUtf8(), s_host.toUtf8().length() );
 	s_host = shaOne.result().toHex();
 
 	#ifdef _DEBUG_
