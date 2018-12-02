@@ -414,7 +414,7 @@ void Snapper::onNetworkRequestFinished( QNetworkReply* reply ) {
 			this->frameLoad( false );
 		}
 	}
-	reply->deleteLater();
+    reply->deleteLater();
 }
 
 void Snapper::frameLoad( bool okay ) {
