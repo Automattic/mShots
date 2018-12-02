@@ -93,6 +93,7 @@ private slots:
 	void downloadRequested( QNetworkRequest request );
 	void unsupportedContent( QNetworkReply* reply );
 	void onNetworkRequestFinished( QNetworkReply* );
+	void emitReadySignal();
 
 private:
 	//QWebView *m_webview;

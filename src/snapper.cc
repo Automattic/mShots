@@ -440,12 +440,16 @@ void Snapper::frameLoad( bool okay ) {
 		if ( m_filename.isEmpty() || m_url.isEmpty() ) {
 			return;
 		}
-		this->processCallback( "", SUCCESS );
+		QTimer::singleShot( 1000, this, SLOT( emitReadySignal() ) );
 	} else {
 		this->saveAsNotFound();
 		QString err_msg = "Error in loading the URL: "+ m_url.toString();
 		this->processCallback( err_msg, GENERAL_ERROR );
 	}
+}
+
+void Snapper::emitReadySignal() {
+	this->processCallback( "", SUCCESS );
 }
 
 void Snapper::saveThumbnail( const QUrl &p_url, const QString &p_filename, const double &p_width, const double &p_height ) {
