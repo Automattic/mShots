@@ -8,7 +8,8 @@ if ( ! class_exists( 'mShots' ) ) {
 		const disable_requeue = false;
 		const location_header = 'X-Accel-Redirect: ';
 		const location_base = '/opt/mshots/public_html/thumbnails';
-		const snapshot_default = 'https://s0.wp.com/wp-content/plugins/mshots/default.gif';
+		const snapshot_default = 'https://s0.wp.com/mshots/v1/default';
+		const snapshot_default_file = '/opt/mshots/public_html/images/default.gif';
 
 		const VIEWPORT_MAX_W = 1600;
 		const VIEWPORT_MAX_H = 1200;
@@ -42,6 +43,10 @@ if ( ! class_exists( 'mShots' ) ) {
 
 			if ( 2 > count( $array_check ) || $array_check[1] != 'v1' )
 				$this->my404();
+
+			if ( 'default' == $array_check[2] ) {
+				$this->serve_default_gif();
+			}
 
 			if ( ( isset( $_GET[ 'requeue' ] ) && "true" == $_GET[ 'requeue' ] ) ) {
 				$this->requeue = true;
@@ -231,6 +236,16 @@ if ( ! class_exists( 'mShots' ) ) {
 			}
 		}
 
+		private function serve_default_gif() {
+			header( "HTTP/1.1 200 OK" );
+			header( 'Content-Length: ' . filesize( self::snapshot_default_file ) );
+			header( 'Content-Type: image/gif' );
+			header( 'Last-Modified: ' . gmdate( 'D, d M Y H:i:s', time() ) . ' GMT' );
+			header( "Expires: " . gmdate( 'D, d M Y H:i:s', time() + 63115200 ) . " GMT" );
+			readfile( self::snapshot_default_file );
+			die();
+		}
+
 		private function my404() {
 			header( "Content-Type: text/plain" );
 			header( "HTTP/1.1 404 Not Found" );
@@ -241,7 +256,7 @@ if ( ! class_exists( 'mShots' ) ) {
 
 		private function my307( $redirect_url ) {
 			header( "HTTP/1.1 307 Temporary Redirect" );
-			header( "Last-Modified, 01 Jan 2013 01:00:00 GMT" );
+			header( "Last-Modified: Tue, 01 Jan 2013 01:00:00 GMT" );
 			header( "Expires: " . gmdate( 'D, d M Y H:i:s' ) . " GMT" );
 			header( "Cache-Control: no-cache, no-store, must-revalidate, max-age=0, pre-check=1, post-check=2" );
 			header( "Pragma: no-cache" );
