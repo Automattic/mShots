@@ -241,7 +241,7 @@ if ( ! class_exists( 'mShots' ) ) {
 
 		private function my307( $redirect_url ) {
 			header( "HTTP/1.1 307 Temporary Redirect" );
-			header( "Last-Modified, 01 Jan 2013 01:00:00 GMT" );
+			header( "Last-Modified: Tue, 01 Jan 2013 01:00:00 GMT" );
 			header( "Expires: " . gmdate( 'D, d M Y H:i:s' ) . " GMT" );
 			header( "Cache-Control: no-cache, no-store, must-revalidate, max-age=0, pre-check=1, post-check=2" );
 			header( "Pragma: no-cache" );
