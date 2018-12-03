@@ -1,5 +1,9 @@
 # This is the blacklist config file for mShots.JS
 # List IPv4 addresses, e.g. xxx.xxx.xxx.xxx
 # List IPv4 masked subnets, e.g. xxx.xxx.xxx.xxx/xx
+# List domain names
 127.0.0.1
 127.0.0.0/8
+# no stats logging for snapshots
+pixel.wp.com
+

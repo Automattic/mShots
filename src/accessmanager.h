@@ -30,6 +30,7 @@ private:
 
 	QList<QHostAddress> get_host_addresses( QString s_hostname );
 	QNetworkReply *createBlacklistRequest( QString s_blacklisted );
+	void log_blacklisting( const QString &log_text );
 	void do_log_rotation();
 };
 

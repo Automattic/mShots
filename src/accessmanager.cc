@@ -8,36 +8,29 @@ AccessManager::AccessManager( QObject *parent ) : QNetworkAccessManager( parent 
 QNetworkReply *AccessManager::createRequest( QNetworkAccessManager::Operation operation, const QNetworkRequest &request, QIODevice *device ) {
 	if ( request.url().host().isEmpty() )
 		return QNetworkAccessManager::createRequest( operation, request, device );
-
+    
 	if ( ! m_blacklist->allowedHost( request.url().host() ) ) {
-		if ( QFile( QDir::currentPath() + QDir::separator() + "logs/blacklisted.log" ).size() > MAX_LOG_FILESIZE )
-				this->do_log_rotation();
-			QFile logger( QDir::currentPath() + QDir::separator() + "logs/blacklisted.log");
-			logger.open( QFile::Append );
-			QTextStream out( &logger );
-			out << "[" << QDateTime::currentDateTime().toString( "yyyy-MM-dd HH:mm:ss" ) << "]: domain '"
-				<< request.url().host() << "' is blacklisted.\n";
-			logger.close();
-
-			std::cerr << "blacklisted: " << request.url().toString().toStdString().data() << std::endl;
-
-			return this->createBlacklistRequest( QString( "Host '" + request.url().host() + "'" ) );
+		// Prevent our pixel stats blocking from spamming the logs
+		if ( "pixel.wp.com" != request.url().host() ) {
+			this->log_blacklisting( "domain '" + request.url().host() + "' is blacklisted" );
+		}
+		return this->createBlacklistRequest( QString( "Host '" + request.url().host() + "'" ) );
 	}
 
-	QList<QHostAddress> host_addresses = get_host_addresses( request.url().host() );
+	QHostAddress testIP(request.url().host());
+	if ( ! testIP.isNull() ) {
+		if ( false == m_blacklist->allowedIP( testIP ) ) {
+			this->log_blacklisting( "Blocked IP address: " + request.url().host() );
+			return this->createBlacklistRequest( QString( "IP '" + request.url().host() + "'" ) );
+		}
+	} else {
+		QList<QHostAddress> host_addresses = get_host_addresses( request.url().host() );
 
-	foreach ( const QHostAddress &checkAddress, host_addresses ) {
-		if ( false == m_blacklist->allowedIP( checkAddress ) ) {
-			if ( QFile( QDir::currentPath() + QDir::separator() + "logs/blacklisted.log" ).size() > MAX_LOG_FILESIZE )
-				this->do_log_rotation();
-			QFile logger( QDir::currentPath() + QDir::separator() + "logs/blacklisted.log");
-			logger.open( QFile::Append );
-			QTextStream out( &logger );
-			out << "[" << QDateTime::currentDateTime().toString( "yyyy-MM-dd HH:mm:ss" ) << "]: '"
-				<< request.url().host() << "', resolves to " << checkAddress.toString() << ".\n";
-			logger.close();
-
-			return this->createBlacklistRequest( QString( "IP " + checkAddress.toString() ) );
+		foreach ( const QHostAddress &checkAddress, host_addresses ) {
+			if ( false == m_blacklist->allowedIP( checkAddress ) ) {
+				this->log_blacklisting( "'" + request.url().host() + "', resolves to " + checkAddress.toString() );
+				return this->createBlacklistRequest( QString( "IP " + checkAddress.toString() ) );
+			}
 		}
 	}
 
@@ -48,9 +41,19 @@ QNetworkReply *AccessManager::createBlacklistRequest( QString s_blacklisted ) {
 	AccessReply *reply = new AccessReply();
 	reply->set_http_status( 403, "Forbidden" );
 	reply->set_content_type( "text/html; charset=UTF-8" );
-	reply->set_content( QString( "<html><head><title>403</title></head><body>Blacklisted host due to "
-						+ s_blacklisted + ".</body></html>" ) );
+	reply->set_content( QString( "<html><head><title>403</title></head><body>Blacklisted host due to " + s_blacklisted + ".</body></html>" ) );
 	return reply;
+}
+
+void AccessManager::log_blacklisting( const QString &log_text ) {
+	if ( QFile( QDir::currentPath() + QDir::separator() + "logs/blacklisted.log" ).size() > MAX_LOG_FILESIZE ) {
+		this->do_log_rotation();
+    }
+	QFile logger( QDir::currentPath() + QDir::separator() + "logs/blacklisted.log");
+	logger.open( QFile::Append );
+	QTextStream out( &logger );
+	out << "[" << QDateTime::currentDateTime().toString( "yyyy-MM-dd HH:mm:ss" ) << "]: " << log_text << ".\n";
+	logger.close();
 }
 
 void AccessManager::do_log_rotation() {
