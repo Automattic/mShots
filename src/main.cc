@@ -65,28 +65,6 @@ static void segfault_handler( int sig, siginfo_t *si, void *unused ) {
     exit( -1 );
 }
 
-static QUrl UrlFromString( const QString &string ) {
-	QString urlStr = string.trimmed();
-	QRegExp test( QLatin1String( "^[a-zA-Z]+\\:.*" ) );
-
-	bool hasSchema = test.exactMatch( urlStr );
-	if ( hasSchema ) {
-		QUrl url( urlStr, QUrl::TolerantMode );
-		if ( url.isValid() )
-		return url;
-	} else {
-		int dotIndex = urlStr.indexOf( QLatin1Char( '.' ) );
-		if ( -1 != dotIndex ) {
-			QString prefix = urlStr.left( dotIndex ).toLower();
-			QString schema = ( prefix == QLatin1String( "ftp" ) ) ? prefix : QLatin1String( "http" );
-			QUrl url( schema + QLatin1String( "://" ) + urlStr, QUrl::TolerantMode );
-			if ( url.isValid() )
-				return url;
-		}
-	}
-	return QUrl( string, QUrl::TolerantMode );
-}
-
 void Exit( const v8::FunctionCallbackInfo<v8::Value>& info ) {
 	if ( NULL != websnap ) {
 		websnap->stopLoading();
@@ -188,7 +166,7 @@ void SaveThumb( const v8::FunctionCallbackInfo<v8::Value>& args ) {
 		CopyablePersistentTraits<Function>::CopyablePersistent percy( isolate, cb );
 
 		websnap->setCallbackFunction( isolate, percy );
-		websnap->saveThumbnail( UrlFromString( pURL ), pFileName, args[2]->NumberValue(), args[3]->NumberValue() );
+		websnap->saveThumbnail( pURL, pFileName, args[2]->NumberValue(), args[3]->NumberValue() );
 	}
 	catch (std::exception ex) {
 		isolate->ThrowException(Exception::TypeError(
@@ -230,7 +208,7 @@ void LoadPage( const v8::FunctionCallbackInfo<v8::Value>& args ) {
 
 		websnap->setCallbackFunction( isolate, percy );
 		websnap->setTargetSize( args[2]->NumberValue(), args[3]->NumberValue() );
-		websnap->load( UrlFromString( pURL ), pFileName );
+		websnap->load( pURL, pFileName );
 	}
 	catch (std::exception ex) {
 		isolate->ThrowException( Exception::TypeError(

@@ -173,7 +173,7 @@ void Snapper::validate_path() {
 
 bool Snapper::filenameValid( const QString &p_url ) const {
 	QCryptographicHash mdFiver( QCryptographicHash::Md5 );
-	mdFiver.addData( p_url.toStdString().c_str(), p_url.length() );
+	mdFiver.addData( p_url.toUtf8(), p_url.toUtf8().length() );
 	QString s_filename = mdFiver.result().toHex();
 
 	QStringList url_parts = p_url.split( "://" );
@@ -189,7 +189,7 @@ bool Snapper::filenameValid( const QString &p_url ) const {
 	#endif
 
 	QCryptographicHash shaOne( QCryptographicHash::Sha1 );
-	shaOne.addData( s_host.toLower().toStdString().c_str(), s_host.length() );
+	shaOne.addData( s_host.toLower().toUtf8(), s_host.toUtf8().length() );
 	s_host = shaOne.result().toHex();
 
 	#ifdef _DEBUG_
@@ -414,7 +414,7 @@ void Snapper::onNetworkRequestFinished( QNetworkReply* reply ) {
 			this->frameLoad( false );
 		}
 	}
-	reply->deleteLater();
+    reply->deleteLater();
 }
 
 void Snapper::frameLoad( bool okay ) {
@@ -440,12 +440,16 @@ void Snapper::frameLoad( bool okay ) {
 		if ( m_filename.isEmpty() || m_url.isEmpty() ) {
 			return;
 		}
-		this->processCallback( "", SUCCESS );
+		QTimer::singleShot( 1000, this, SLOT( emitReadySignal() ) );
 	} else {
 		this->saveAsNotFound();
 		QString err_msg = "Error in loading the URL: "+ m_url.toString();
 		this->processCallback( err_msg, GENERAL_ERROR );
 	}
+}
+
+void Snapper::emitReadySignal() {
+	this->processCallback( "", SUCCESS );
 }
 
 void Snapper::saveThumbnail( const QUrl &p_url, const QString &p_filename, const double &p_width, const double &p_height ) {
