@@ -8,7 +8,8 @@ if ( ! class_exists( 'mShots' ) ) {
 		const disable_requeue = false;
 		const location_header = 'X-Accel-Redirect: ';
 		const location_base = '/opt/mshots/public_html/thumbnails';
-		const snapshot_default = 'https://s0.wp.com/wp-content/plugins/mshots/default.gif';
+		const snapshot_default = 'https://s0.wp.com/mshots/v1/default';
+		const snapshot_default_file = '/opt/mshots/public_html/images/default.gif';
 
 		const VIEWPORT_MAX_W = 1600;
 		const VIEWPORT_MAX_H = 1200;
@@ -42,6 +43,10 @@ if ( ! class_exists( 'mShots' ) ) {
 
 			if ( 2 > count( $array_check ) || $array_check[1] != 'v1' )
 				$this->my404();
+
+			if ( 'default' == $array_check[2] ) {
+				$this->serve_default_gif();
+			}
 
 			if ( ( isset( $_GET[ 'requeue' ] ) && "true" == $_GET[ 'requeue' ] ) ) {
 				$this->requeue = true;
@@ -229,6 +234,16 @@ if ( ! class_exists( 'mShots' ) ) {
 				error_log( "error processing filename : " . $image_filename );
 				$this->my404();
 			}
+		}
+
+		private function serve_default_gif() {
+			header( "HTTP/1.1 200 OK" );
+			header( 'Content-Length: ' . filesize( self::snapshot_default_file ) );
+			header( 'Content-Type: image/gif' );
+			header( 'Last-Modified: ' . gmdate( 'D, d M Y H:i:s', time() ) . ' GMT' );
+			header( "Expires: " . gmdate( 'D, d M Y H:i:s', time() + 63115200 ) . " GMT" );
+			readfile( self::snapshot_default_file );
+			die();
 		}
 
 		private function my404() {
