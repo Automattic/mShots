@@ -22,23 +22,6 @@ function startservice {
 		echo "mShots.JS is not installed in the correct directory: ${INSTALL_DIR}"
 		exit 1
 	fi
-	if [ ! -f "${INSTALL_DIR}/lib/snapper.node" ]; then
-		if [ ! -f "${INSTALL_DIR}/build/Release/snapper.node" ]; then
-			echo "Please build the Snapper Node module, before running the mShots.JS service."
-			echo "> cd ${INSTALL_DIR}; node-gyp configure; node-gyp build"
-			exit 1
-		else
-			cp "${INSTALL_DIR}/build/Release/snapper.node" "${INSTALL_DIR}/lib/snapper.node"
-		fi
-	else
-		if [ -f "${INSTALL_DIR}/build/Release/snapper.node" ]; then
-			checkDiff1=`md5sum "${INSTALL_DIR}/build/Release/snapper.node" | awk ' { print $(1) } '`
-			checkDiff2=`md5sum "${INSTALL_DIR}/lib/snapper.node" | awk ' { print $(1) } '`
-			if [ ! "x$checkDiff1" == "x$checkDiff2" ]; then
-				cp "${INSTALL_DIR}/build/Release/snapper.node" "${INSTALL_DIR}/lib/snapper.node"
-			fi
-		fi
-	fi
 	pid="`ps -ef | grep 'mShots.JS - Master' | grep -v 'grep' | awk ' { print $(2) }'`"
 	if [ -z $pid ]; then
 		pid=0
@@ -86,8 +69,7 @@ function startservice {
 
 	echo "Starting mShots.JS"
 	ARGS="${INSTALL_DIR}/lib/mshots.js -p $PORT -n $WORKERS 2"
-	start-stop-daemon -S -q -m -b --pidfile /var/run/mshots.pid --exec /usr/local/node/bin/node \
-					--chuid wpcom:wpcom --chdir $INSTALL_DIR -- $ARGS
+	start-stop-daemon -S -q -m -b --pidfile /var/run/mshots.pid --exec /usr/local/node/bin/node --chdir $INSTALL_DIR -- $ARGS
 	sleep 1
 
 	echo "Starting mShots reaper daemon"
