@@ -69,8 +69,7 @@ function startservice {
 
 	echo "Starting mShots.JS"
 	ARGS="${INSTALL_DIR}/lib/mshots.js -p $PORT -n $WORKERS 2"
-	start-stop-daemon -S -q -m -b --pidfile /var/run/mshots.pid --exec /usr/local/node/bin/node \
-					--chuid wpcom:wpcom --chdir $INSTALL_DIR -- $ARGS
+	start-stop-daemon -S -q -m -b --pidfile /var/run/mshots.pid --exec /usr/local/node/bin/node --chdir $INSTALL_DIR -- $ARGS
 	sleep 1
 
 	echo "Starting mShots reaper daemon"
