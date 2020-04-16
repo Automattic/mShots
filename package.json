@@ -11,8 +11,18 @@
 	"engines": {
 		"node": ">= 8.0.0"
 	},
+	"scripts": {
+		"test": "jest"
+	},
 	"dependencies": {
+		"ip": "^1.1.5",
 		"log4js": ">=0.6.0",
 		"puppeteer": "^1.6.1"
+	},
+	"devDependencies": {
+		"express": "^4.17.1",
+		"jest": "^25.3.0",
+		"sharp": "^0.25.2",
+		"tmp": "^0.1.0"
 	}
 }
