@@ -33,7 +33,7 @@ let staticServer;
 
 /**
  * A delay helper function
- * @param {Number} delay 
+ * @param {Number} delay
  */
 function sleep(delay) {
   return new Promise((r) => setTimeout(r, delay));
@@ -112,4 +112,26 @@ test("add_to_queue: should respect width and height params for long sites", asyn
 
   expect(metadata.width).toEqual(1280);
   expect(metadata.height).toEqual(720);
+});
+
+test("add_to_queue: image dimensions should be equal to screenHeight and screenWidth for long enough sites", async () => {
+  let site = {
+    url: "http://127.0.0.1:3000/long-site.html",
+    file: tempFile,
+    width: 1280,
+    height: 720,
+    screenWidth: 1280,
+    screenHeight: 2048,
+  };
+
+  snapshot.add_to_queue(site);
+
+  // snapshot polls the queue every 1000ms and screenshots take some time
+  await sleep(4500);
+
+  const image = sharp(tempFile);
+  const metadata = await image.metadata();
+
+  expect(metadata.width).toEqual(site.screenWidth);
+  expect(metadata.height).toEqual(site.screenHeight);
 });
