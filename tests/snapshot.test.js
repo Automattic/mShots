@@ -127,11 +127,12 @@ test("add_to_queue: image dimensions should be equal to screenHeight and screenW
   snapshot.add_to_queue(site);
 
   // snapshot polls the queue every 1000ms and screenshots take some time
-  await sleep(4500);
+  // use 8000ms because longer screenshots need more time
+  await sleep(8000);
 
   const image = sharp(tempFile);
   const metadata = await image.metadata();
 
   expect(metadata.width).toEqual(site.screenWidth);
   expect(metadata.height).toEqual(site.screenHeight);
-});
+}, 10000);
