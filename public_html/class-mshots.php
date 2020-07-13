@@ -118,7 +118,12 @@ if ( ! class_exists( 'mShots' ) ) {
 			}
 			memcache_set( $m, $urlkey, 1, 0, 300 );
 
-			$requeue_url = self::renderer . "/queue?url=" . rawurlencode( $this->snapshot_url ) . "&f=" . urlencode( $this->snapshot_file ) . '&screen_width=' . $this->screen_width . '&screen_height=' . $this->screen_height;
+			$requeue_url = self::renderer . "/queue?url=" . rawurlencode( $this->snapshot_url ) . "&f=" . urlencode( $this->snapshot_file );
+
+			if( $this->screen_width != $this->viewport_w || $this->screen_height != $this->viewport_h ) {
+				$requeue_url .= '&screen_width=' . $this->screen_width . '&screen_height=' . $this->screen_height;
+			}
+
 			if ( $this->viewport_w != self::VIEWPORT_DEFAULT_W || $this->viewport_h != self::VIEWPORT_DEFAULT_H )
 				$requeue_url .= '&vpw=' . $this->viewport_w . '&vph=' . $this->viewport_h;
 
