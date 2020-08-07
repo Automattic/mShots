@@ -25,6 +25,7 @@ if ( ! class_exists( 'mShots' ) ) {
 		private $invalidate = false;
 		private $viewport_w = self::VIEWPORT_DEFAULT_W;
 		private $viewport_h = self::VIEWPORT_DEFAULT_H;
+		private $quality = '';
 
 		function __construct() {
 			ob_start();
@@ -82,6 +83,15 @@ if ( ! class_exists( 'mShots' ) ) {
 					$this->viewport_h = self::VIEWPORT_MAX_H;
 				else if ( $this->viewport_h < self::VIEWPORT_MIN_H )
 					$this->viewport_h = self::VIEWPORT_MIN_H;
+			}
+
+			if ( isset( $_GET[ 'quality' ] ) ) {
+				if ( 'low' === $_GET[ 'quality' ] ) {
+					$this->quality = 'low';
+				}
+				if ( 'med' === $_GET[ 'quality' ] ) {
+					$this->quality = 'med';
+				}
 			}
 
 			$this->snapshot_file = $this->resolve_filename( $this->snapshot_url );
@@ -201,7 +211,13 @@ if ( ! class_exists( 'mShots' ) ) {
 					if ( $thumb_height < 20 ) $thumb_height = 20;
 					$thumb_aspect = $thumb_width / $thumb_height;
 					if ( ( $thumb_width == $width &&  $thumb_height == $height ) ) {
-						imagejpeg( $image, null, 90 );
+						if ( $this->quality === 'low' ) {
+							imagejpeg( $image, null, 50 );
+						} else if ( $this->quality === 'med' ) {
+							imagejpeg( $image, null, 72 );
+						} else {
+							imagejpeg( $image, null, 90 );
+						}
 					} else {
 						if ( $original_aspect >= $thumb_aspect ) {
 							$new_height = $thumb_height;
@@ -213,7 +229,13 @@ if ( ! class_exists( 'mShots' ) ) {
 						$thumb = imagecreatetruecolor( $thumb_width, $thumb_height );
 						$indentX = 0 - ( $new_width - $thumb_width ) / 2;
 						imagecopyresampled( $thumb, $image, $indentX, 0, 0, 0, $new_width, $new_height, $width, $height );
-						imagejpeg( $thumb, null, 95 );
+						if ( $this->quality === 'low' ) {
+							imagejpeg( $image, null, 50 );
+						} else if ( $this->quality === 'med' ) {
+							imagejpeg( $image, null, 72 );
+						} else {
+							imagejpeg( $image, null, 95 );
+						}
 					}
 				} else {
 					error_log( "error processing filename : " . $image_filename );
@@ -273,9 +295,18 @@ if ( ! class_exists( 'mShots' ) ) {
 			$host = sha1( strtolower( $s_host ) );
 			$file = md5( $snap_url );
 			$viewport = '';
-			if ( $this->viewport_w != self::VIEWPORT_DEFAULT_W || $this->viewport_h != self::VIEWPORT_DEFAULT_H )
+
+			if ( $this->viewport_w != self::VIEWPORT_DEFAULT_W || $this->viewport_h != self::VIEWPORT_DEFAULT_H ) {
 				$viewport = '_' . $this->viewport_w . 'x' . $this->viewport_h;
-			$fullpath = self::location_base . '/' . substr( $host, 0, 3 ) . '/' . $host . '/' . $file . $viewport. '.jpg';
+			}
+
+			$quality = '';
+
+			if ( $this->quality ) {
+				$quality = '_' . $this->quality;
+			}
+
+			$fullpath = self::location_base . '/' . substr( $host, 0, 3 ) . '/' . $host . '/' . $file . $viewport . $quality . '.jpg';
 
 			return $fullpath;
 		}
