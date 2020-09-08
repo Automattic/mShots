@@ -1,0 +1,12 @@
+version: "3"
+services:
+  php:
+    build: .
+    container_name: 'php'
+    ports:
+      - '8000:8000'
+  memcached:
+    container_name: memcached
+    image: memcached:latest
+    ports:
+      - '11211:11211'
