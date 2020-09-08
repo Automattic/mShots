@@ -21,7 +21,7 @@ RUN apt-get update \
       --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
-# Install memcached
+# Install memcache extension
 RUN apt-get update \
     && apt-get install -y memcached libmemcached-dev zlib1g-dev
 
@@ -34,6 +34,7 @@ RUN a2enmod rewrite
 RUN curl -sL https://deb.nodesource.com/setup_14.x | bash -
 RUN apt-get install -y nodejs
 
+# configure Apache and PHP
 RUN mv "$PHP_INI_DIR/php.ini-development" "$PHP_INI_DIR/php.ini"
 
 RUN echo "\r\nlog_errors = On" >> "$PHP_INI_DIR/php.ini"
@@ -45,10 +46,9 @@ RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-av
 RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
 RUN sed -i 's/80/8000/g' /etc/apache2/sites-available/000-default.conf /etc/apache2/ports.conf
 
+# This is where mshots wants to run
 WORKDIR /opt/mshots
-
 COPY . /opt/mshots
-# COPY ./public_html/ /var/www/html/
 
 RUN npm install
 
@@ -57,11 +57,12 @@ RUN ln -s /usr/bin/node /usr/local/node/bin
 
 RUN touch /var/run/mshots.pid
 
+# Setup our user and permissions
 RUN chown -R www-data /var/www/html \
     && chown -R www-data /usr/local/node/bin \
     && chown -R www-data /opt/mshots \
     && chown -R www-data /var/run/mshots.pid
-
-EXPOSE 8000
-
 USER www-data
+
+# Get started
+EXPOSE 8000
