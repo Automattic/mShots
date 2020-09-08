@@ -24,10 +24,9 @@ RUN apt-get update \
 # Install memcached
 RUN apt-get update \
     && apt-get install -y memcached libmemcached-dev zlib1g-dev
-    # && apt-get install -y php-memcached
 
-RUN pecl install memcached \
-    && docker-php-ext-enable memcached
+RUN pecl install memcache \
+    && docker-php-ext-enable memcache
 
 RUN a2enmod rewrite
 
