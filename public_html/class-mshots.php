@@ -96,7 +96,10 @@ if ( ! class_exists( 'mShots' ) ) {
 			header( "Connection: Close" );
 			flush();
 			ob_end_flush();
-			$m = memcache_connect( '127.0.0.1', 11211 );
+
+			$is_docker_server = isset( $_SERVER['SERVER_PORT'] ) && 8000 == $_SERVER['SERVER_PORT']; 
+			$m = memcache_connect( $is_docker_server ? 'memcached' : '127.0.0.1', 11211 );
+
 			$urlkey = sha1( $this->snapshot_url );
 			if ( isset( $_GET[ 'requeue' ] ) && ( 'true' != $_GET[ 'requeue' ] ) ) {
 				if ( memcache_get( $m, $urlkey ) )
