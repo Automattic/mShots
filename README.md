@@ -45,7 +45,6 @@ Control the execution of the application with the `mshots_ctl.sh` bash script in
 
 	> node lib/mshots -p <port number> -n <number of workers>
 
-
 Tests
 ------
 
@@ -53,6 +52,8 @@ Both JS and php unit tests live in the `tests` directory and can be run with
 the `npm test` command.
 
 They can also be run individually with `npm run test:js` and `npm run test:php`
+
+The test scripts should also work inside the docker container described immediately below.
 
 Dev Setup
 ---------

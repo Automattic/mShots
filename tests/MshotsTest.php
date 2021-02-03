@@ -79,3 +79,4 @@ class MshotsTest extends \PHPUnit\Framework\TestCase {
 		];
 	}
 }
+
