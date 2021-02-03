@@ -13,7 +13,7 @@
 	},
 	"scripts": {
 		"test": "npm run test:php && npm run test:js",
-		"test:php": "phpunit tests",
+		"test:php": "phpunit -c tests/phpunit.xml tests",
 		"test:js": "jest"
 	},
 	"dependencies": {
