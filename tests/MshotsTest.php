@@ -6,6 +6,9 @@ class TestMshots extends mShots {
 	//
 	// Stubs to avoid calls to die()
 	//
+	public $served_404 = false;
+	public $served_default_gif = false;
+
 	public function serve_default_gif() {
 		$this->served_default_gif = true;
 	}
@@ -63,7 +66,7 @@ class MshotsTest extends \PHPUnit\Framework\TestCase {
 
 	public function uri_and_filenames() {
 		return [
-			[ '/invalid', '404' ],
+			[ '/mshots/invalid/http://example.com', '404' ],
 			[ '/mshots/v1/default', 'default' ],
 			[ '/mshots/v1/https://public-api.wordpress.com/rest/v1/template/demo/rockfield/reynolds?font_base=Fira%20Sans&font_headings=Playfair%20Display&site_title=Reynolds&language=ko',
 			 '/opt/mshots/public_html/thumbnails/ed2/ed271f0f0255e9d784e345dc2f0d8cc48ca26019/e295c5f761af9ac029f49726f50b16b1.jpg' ]
