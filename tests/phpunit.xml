@@ -1,0 +1,6 @@
+<phpunit
+        stopOnFailure="false"
+        backupGlobals="false"
+        convertNoticesToExceptions="false"
+        convertWarningsToExceptions="false">
+</phpunit>
