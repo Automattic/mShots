@@ -78,8 +78,4 @@ class MshotsTest extends \PHPUnit\Framework\TestCase {
 			[ '/mshots/v1/http%3A%2F%2Fcentrodelahoya.es', '/opt/mshots/public_html/thumbnails/9c2/9c2aba28f0d90f31dace1cf44f078ef8a084f07b/b633ca3b16327c692df17133f00d6554.jpg' ]
 		];
 	}
-
-    public function test_test() {
-		$this->assertTrue( false );
-    }
 }
