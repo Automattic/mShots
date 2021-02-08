@@ -18,13 +18,13 @@ if ( ! class_exists( 'mShots' ) ) {
 		const VIEWPORT_DEFAULT_W = 1280;
 		const VIEWPORT_DEFAULT_H = 960;
 
-		private $snapshot_url = "";
-		private $snapshot_file = "";
-		private $parsed_url = "";
-		private $requeue = false;
-		private $invalidate = false;
-		private $viewport_w = self::VIEWPORT_DEFAULT_W;
-		private $viewport_h = self::VIEWPORT_DEFAULT_H;
+		protected $snapshot_url = "";
+		protected $snapshot_file = "";
+		protected $parsed_url = "";
+		protected $requeue = false;
+		protected $invalidate = false;
+		protected $viewport_w = self::VIEWPORT_DEFAULT_W;
+		protected $viewport_h = self::VIEWPORT_DEFAULT_H;
 
 		function __construct() {
 			ob_start();
@@ -236,7 +236,7 @@ if ( ! class_exists( 'mShots' ) ) {
 			}
 		}
 
-		private function serve_default_gif() {
+		protected function serve_default_gif() {
 			header( "HTTP/1.1 200 OK" );
 			header( 'Content-Length: ' . filesize( self::snapshot_default_file ) );
 			header( 'Content-Type: image/gif' );
@@ -246,7 +246,7 @@ if ( ! class_exists( 'mShots' ) ) {
 			die();
 		}
 
-		private function my404() {
+		protected function my404() {
 			header( "Content-Type: text/plain" );
 			header( "HTTP/1.1 404 Not Found" );
 			header( "Last-Modified: " . gmdate( 'D, d M Y H:i:s', 1) . " GMT" );
@@ -254,7 +254,7 @@ if ( ! class_exists( 'mShots' ) ) {
 			die( "HTTP/1.1 404 Not Found" );
 		}
 
-		private function my307( $redirect_url ) {
+		protected function my307( $redirect_url ) {
 			header( "HTTP/1.1 307 Temporary Redirect" );
 			header( "Last-Modified: Tue, 01 Jan 2013 01:00:00 GMT" );
 			header( "Expires: " . gmdate( 'D, d M Y H:i:s' ) . " GMT" );
@@ -264,7 +264,7 @@ if ( ! class_exists( 'mShots' ) ) {
 			header( "Content-Type: text/html; charset=UTF-8" );
 		}
 
-		private function resolve_filename( $snap_url ) {
+		protected function resolve_filename( $snap_url ) {
 			$url_parts = explode( '://', $snap_url );
 			if ( 1 < count( $url_parts ) )
 				$s_host = explode( '/', $url_parts[1] )[0];
@@ -280,14 +280,14 @@ if ( ! class_exists( 'mShots' ) ) {
 			return $fullpath;
 		}
 
-		private function resolve_mshots_url( $url ) {
+		protected function resolve_mshots_url( $url ) {
 			return sprintf(
 				"/mshots/v1/%s",
 				rawurlencode( $url )
 				);
 		}
 
-		private function invalidate_snapshot( $snapshot_url ) {
+		protected function invalidate_snapshot( $snapshot_url ) {
 			$uri = str_replace( '&requeue=true', '', $_SERVER['REQUEST_URI'] );
 			$uri = str_replace( '?requeue=true', '', $uri );
 			$this->purge_snapshot( $uri );
