@@ -25,7 +25,7 @@ RUN apt-get update \
 RUN apt-get update \
     && apt-get install -y memcached libmemcached-dev zlib1g-dev
 
-RUN pecl install memcache \
+RUN pecl install memcache-4.0.5.2 \
     && docker-php-ext-enable memcache
 
 # Install GD
