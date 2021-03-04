@@ -97,8 +97,11 @@ if ( ! class_exists( 'mShots' ) ) {
 			flush();
 			ob_end_flush();
 
-			$is_docker_server = isset( $_SERVER['SERVER_PORT'] ) && 8000 == $_SERVER['SERVER_PORT']; 
-			$m = memcache_connect( $is_docker_server ? 'memcached' : '127.0.0.1', 11211 );
+			$memcache_host = getenv( 'MSHOTS_MEMCACHE_HOST' );
+			if ( empty( $memcache_host ) ) {
+				$memcache_host = '127.0.0.1';
+			}
+			$m = memcache_connect( $memcache_host, 11211 );
 
 			$urlkey = sha1( $this->snapshot_url );
 			if ( isset( $_GET[ 'requeue' ] ) && ( 'true' != $_GET[ 'requeue' ] ) ) {
