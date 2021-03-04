@@ -1,6 +1,12 @@
 FROM php:7.4-apache
 
-# # Manually install missing shared libs for Chromium.
+# Setup our user and permissions
+# These are overridden by values in ./.env if it exists
+ARG UID=33
+ARG GID=33
+ARG USER=www-data
+
+# Manually install missing shared libs for Chromium.
 RUN apt-get update && \
     apt-get install -yq gconf-service libasound2 libatk1.0-0 libc6 libcairo2 libcups2 libdbus-1-3 \
     libexpat1 libfontconfig1 libgcc1 libgconf-2-4 libgdk-pixbuf2.0-0 libglib2.0-0 libgtk-3-0 libnspr4 \
@@ -58,19 +64,30 @@ RUN sed -i 's/80/8000/g' /etc/apache2/sites-available/000-default.conf /etc/apac
 WORKDIR /opt/mshots
 COPY . /opt/mshots
 
-RUN npm install
-
-RUN mkdir -p /usr/local/node/bin
+# Set up node & npm
+ENV npm_config_cache=/var/www/.npm
+RUN mkdir -p /var/www/.npm /usr/local/node/bin
 RUN ln -s /usr/bin/node /usr/local/node/bin
 
-RUN touch /var/run/mshots.pid
+# Setup user and permissions
+RUN groupadd --force -g $GID $USER
+RUN adduser --disabled-password --no-create-home --uid $UID --gid $GID --gecos '' $USER
 
-# Setup our user and permissions
-RUN chown -R www-data /var/www/html \
-    && chown -R www-data /usr/local/node/bin \
-    && chown -R www-data /opt/mshots \
-    && chown -R www-data /var/run/mshots.pid
-USER www-data
+RUN touch /var/run/mshots.pid \
+    && chown -R $UID /var/run/mshots.pid \
+    && chown -RL $UID /var/run \
+    && chown -R $UID /var/www/html \
+    && chown -R $UID /usr/local/node/bin \
+    && chown -R $UID /opt/mshots \
+    && chown -R $UID /var/www/.npm
+
+USER $UID
+
+RUN npm install --ignore-scripts
+# Force chromium binary installation
+ENV CHROMEDRIVER_SKIP_DOWNLOAD ''
+RUN cd node_modules/puppeteer \
+    && node ./install.js
 
 # Get started
 EXPOSE 8000

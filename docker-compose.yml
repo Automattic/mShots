@@ -1,15 +1,25 @@
 version: "3"
 services:
-  php:
-    build: .
-    container_name: 'php'
+  dev:
+    container_name: 'mshots-dev'
+    user: "${UID}:${GID}"
+    environment:
+        - UID
+        - USER
+        - MSHOTS_MEMCACHE_HOST=memcached
+    build:
+      context: .
+      args:
+        - UID
+        - USER
     ports:
+      - '7777:7777'
       - '8000:8000'
     volumes:
-      - ./public_html:/opt/mshots/public_html
+      - ./:/opt/mshots/
 
   memcached:
     container_name: memcached
     image: memcached:latest
-    ports:
-      - '11211:11211'
+    expose:
+      - '11211'
