@@ -80,3 +80,7 @@ Background: Docker containers share the kernel with the docker host (the machine
 This means that you'll want to have the same UID inside the container that you used to create your local files. Normally, this will be set up automatically when you `npm install` locally, but some docker setups may mess with your user IDs (e.g. running `dockerd` in a VM through `docker-machine`).
 
 It's the uid that matters, not the username, so use `id -u <username>` inside the container to find the right value.
+
+##### mshots_ctl.sh stop doesn't work
+
+I'm not sure why `mshots_ctl.sh stop` doesn't work in the container, but you can emulate it with the `npm run stop` command.
