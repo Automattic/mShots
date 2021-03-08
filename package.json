@@ -19,9 +19,10 @@
 		"stop": "docker-compose exec mshots sh -c 'test -f /var/run/mshots.pid && kill `cat /var/run/mshots.pid` && echo Master Process killed && rm -f /var/run/mshots.pid || echo already stopped'",
 		"status": "docker-compose exec mshots bash -c 'echo mShots Master process: `set -o pipefail; ps ax | grep Master | grep -v grep | awk \"{print \\\\$1}\" || echo not running` ; echo Workers: `ps ax | grep Worker | grep -v grep | wc -l`'",
 		"build": "docker-compose build",
-		"config:dev": "echo \"UID=$(id -u)\nGID=$(id -g)\" > .env; docker-compose -f docker-compose-core.yml -f docker-compose-dev-override.yml config > docker-compose.yml; npm run build",
 		"config:core": "rm .env; cp docker-compose-core.yml docker-compose.yml ; npm run build",
-		"prepare": "npm run config:dev"
+		"config:dev": "echo \"UID=$(id -u)\nGID=$(id -g)\" > .env; docker-compose -f docker-compose-core.yml -f docker-compose-dev-override.yml config > docker-compose.yml",
+		"docker:install-chromium-binary": "docker-compose run mshots bash -c 'cd node_modules/puppeteer; node install.js'",
+		"prepare": "npm run config:dev; npm run build; npm run docker:install-chromium-binary"
 	},
 	"dependencies": {
 		"ip": "^1.1.5",
