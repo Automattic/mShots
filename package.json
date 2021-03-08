@@ -13,14 +13,15 @@
 	},
 	"scripts": {
 		"test": "jest",
-		"start": "npm run start:docker && npm run start:mshots && echo mshots service successfully in the dev docker container. && echo Ports 8000 and 7777 are mapped to localhost, e.g. http://localhost:8000/mshots/v1/example.com",
-		"stop": "docker-compose exec dev sh -c 'test -f /var/run/mshots.pid && kill `cat /var/run/mshots.pid` && echo Master Process killed && rm -f /var/run/mshots.pid || echo already stopped'",
-		"status": "docker-compose exec dev bash -c 'echo mShots Master process: `set -o pipefail; ps ax | grep Master | grep -v grep | awk \"{print \\\\$1}\" || echo not running` ; echo Workers: `ps ax | grep Worker | grep -v grep | wc -l`'",
-		"prepare": "npm run config && npm run build:docker",
+		"start": "npm run start:docker && npm run start:mshots && echo mshots service successfully in the mshots docker container. && Port 8000 is mapped to localhost, e.g. http://localhost:8000/mshots/v1/example.com",
 		"start:docker": "docker-compose up -d",
-		"start:mshots": "docker-compose exec dev ./mshots_ctl.sh start",
-		"config": "echo \"UID=$(id -u)\nGID=$(id -g)\" > .env",
-		"build:docker": "docker-compose build"
+		"start:mshots": "docker-compose exec mshots ./mshots_ctl.sh start",
+		"stop": "docker-compose exec mshots sh -c 'test -f /var/run/mshots.pid && kill `cat /var/run/mshots.pid` && echo Master Process killed && rm -f /var/run/mshots.pid || echo already stopped'",
+		"status": "docker-compose exec mshots bash -c 'echo mShots Master process: `set -o pipefail; ps ax | grep Master | grep -v grep | awk \"{print \\\\$1}\" || echo not running` ; echo Workers: `ps ax | grep Worker | grep -v grep | wc -l`'",
+		"build": "docker-compose build",
+		"config:dev": "echo \"UID=$(id -u)\nGID=$(id -g)\" > .env; docker-compose -f docker-compose-core.yml -f docker-compose-dev-override.yml config > docker-compose.yml; npm run build",
+		"config:core": "rm .env; cp docker-compose-core.yml docker-compose.yml ; npm run build",
+		"prepare": "npm run config:dev"
 	},
 	"dependencies": {
 		"ip": "^1.1.5",

@@ -48,8 +48,8 @@ Dev Setup
 Docker can be used to run the mshots service on OSX for dev/testing purposes:
 
 - `cd /opt/mshots`: mshots expects to be run from here
-- `npm install`: also configures (`./.env`) and builds the docker image (unless you pass `--ignore-scripts`)
-- `npm start`: spins up the `dev` (docker) service in the `mshots-dev` container and starts the mshots (*nix) service on it
+- `npm install`: This will also configure the docker container for development and build the docker image (unless you pass `--ignore-scripts`)
+- `npm start`: spins up the `mshots` (docker) service in the `mshots-dev` container and starts the mshots (*nix) service within it
 - Ignore the errors about the missing commands. We don't use the kernel extension in the dev container.
 - Check that mshots is available on localhost:8000, e.g. http://localhost:8000/mshots/v1/example.com
 
