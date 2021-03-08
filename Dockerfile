@@ -71,7 +71,7 @@ RUN ln -s /usr/bin/node /usr/local/node/bin
 
 # Setup user and permissions
 RUN groupadd --force -g $GID $USER
-RUN adduser --disabled-password --no-create-home --uid $UID --gid $GID --gecos '' $USER
+RUN adduser --disabled-password --no-create-home --uid $UID --gid $GID --gecos '' $USER || true
 
 RUN touch /var/run/mshots.pid \
     && chown -R $UID /var/run/mshots.pid \
