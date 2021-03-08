@@ -84,3 +84,13 @@ It's the uid that matters, not the username, so use `id -u <username>` inside th
 ##### mshots_ctl.sh stop doesn't work
 
 I'm not sure why `mshots_ctl.sh stop` doesn't work in the container, but you can emulate it with the `npm run stop` command.
+
+#### ENOSPC
+
+```
+npm ERR! nospc ENOSPC: no space left on device, mkdir '/var/www/.npm/_cacache'
+npm ERR! nospc There appears to be insufficient space on your system to finish.
+npm ERR! nospc Clear up some disk space and try again.
+```
+
+Try `docker image prune` to remove old images.
