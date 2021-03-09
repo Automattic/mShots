@@ -13,7 +13,7 @@
 	},
 	"scripts": {
 		"test": "jest",
-		"start": "npm run start:docker && npm run start:mshots && echo mshots service successfully in the mshots docker container. && Port 8000 is mapped to localhost, e.g. http://localhost:8000/mshots/v1/example.com",
+		"start": "npm run start:docker && npm run start:mshots && echo mshots service successfully in the mshots docker container. && echo Port 8000 is mapped to localhost, e.g. http://localhost:8000/mshots/v1/example.com",
 		"start:docker": "docker-compose up -d",
 		"start:mshots": "docker-compose exec mshots ./mshots_ctl.sh start",
 		"stop": "docker-compose exec mshots sh -c 'test -f /var/run/mshots.pid && kill `cat /var/run/mshots.pid` && echo Master Process killed && rm -f /var/run/mshots.pid || echo already stopped'",
