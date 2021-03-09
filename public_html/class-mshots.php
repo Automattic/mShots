@@ -17,6 +17,8 @@ if ( ! class_exists( 'mShots' ) ) {
 		const VIEWPORT_MIN_H = 320;
 		const VIEWPORT_DEFAULT_W = 1280;
 		const VIEWPORT_DEFAULT_H = 960;
+		const SCREEN_MAX_W = 1600;
+		const SCREEN_MAX_H = 3600;
 
 		protected $snapshot_url = "";
 		protected $snapshot_file = "";
@@ -86,6 +88,9 @@ if ( ! class_exists( 'mShots' ) ) {
 
 			if ( isset( $_GET[ 'screen_width' ] ) ) {
 				$this->screen_width = intval( $_GET[ 'screen_width' ] );
+				if ( $this->screen_width > self::SCREEN_MAX_W ) {
+					$this->screen_width = self::SCREEN_MAX_W;
+				}
 			} else {
 				// default to viewport width
 				$this->screen_width = $this->viewport_w;
@@ -93,6 +98,9 @@ if ( ! class_exists( 'mShots' ) ) {
 
 			if ( isset( $_GET[ 'screen_height' ] ) ) {
 				$this->screen_height = intval( $_GET[ 'screen_height' ] );
+				if ( $this->screen_height > self::SCREEN_MAX_H ) {
+					$this->screen_height = self::SCREEN_MAX_H;
+				}
 			} else {
 				// default to viewport height
 				$this->screen_height = $this->viewport_h;
@@ -212,11 +220,11 @@ if ( ! class_exists( 'mShots' ) ) {
 					$original_aspect = $width / $height;
 					// if we are not supplied with the width, use the original image's width
 					$thumb_width = ( isset( $_GET[ 'w' ] ) && $_GET[ 'w' ] ) ? $_GET[ 'w' ] : $width;
-					if ( $thumb_width > 1280 ) $thumb_width = 1280;
+					if ( $thumb_width > self::SCREEN_MAX_W ) $thumb_width = self::SCREEN_MAX_W;
 					if ( $thumb_width < 20 ) $thumb_width = 20;
 					// if we are not supplied with the height, calculate it from the original image aspect ratio
 					$thumb_height = ( isset( $_GET[ 'h' ] ) && $_GET[ 'h' ] ) ? $_GET[ 'h' ] : ( $thumb_width / ( $width / $height ) );
-					if ( $thumb_height > 960 ) $thumb_height = 960;
+					if ( $thumb_height > self::SCREEN_MAX_H ) $thumb_height = self::SCREEN_MAX_H;
 					if ( $thumb_height < 20 ) $thumb_height = 20;
 					$thumb_aspect = $thumb_width / $thumb_height;
 					if ( ( $thumb_width == $width &&  $thumb_height == $height ) ) {
