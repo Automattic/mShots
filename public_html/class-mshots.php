@@ -96,7 +96,13 @@ if ( ! class_exists( 'mShots' ) ) {
 			header( "Connection: Close" );
 			flush();
 			ob_end_flush();
-			$m = memcache_connect( '127.0.0.1', 11211 );
+
+			$memcache_host = getenv( 'MSHOTS_MEMCACHE_HOST' );
+			if ( empty( $memcache_host ) ) {
+				$memcache_host = '127.0.0.1';
+			}
+			$m = memcache_connect( $memcache_host, 11211 );
+
 			$urlkey = sha1( $this->snapshot_url );
 			if ( isset( $_GET[ 'requeue' ] ) && ( 'true' != $_GET[ 'requeue' ] ) ) {
 				if ( memcache_get( $m, $urlkey ) )

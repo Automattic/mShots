@@ -1,0 +1,3 @@
+# Exclude large unnecessary files from the image
+.git
+**/.local-chromium/mac*
