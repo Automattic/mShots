@@ -1,10 +1,6 @@
 FROM php:7.4-apache
 
-# Setup our user and permissions
-# These are overridden by values in ./.env if it exists
-ARG UID=33
-ARG GID=33
-ARG USER=www-data
+# Note ARGs UID, GID and USER are defined later to reduce rebuilding time
 
 ENV MSHOTS_CONTAINERIZED 1
 
@@ -71,7 +67,12 @@ ENV npm_config_cache=/var/www/.npm
 RUN mkdir -p /var/www/.npm /usr/local/node/bin
 RUN ln -s /usr/bin/node /usr/local/node/bin
 
-# Setup user and permissions
+# Setup our user and permissions
+# These are overridden by values in ./.env if it exists
+ARG UID=33
+ARG GID=33
+ARG USER=www-data
+
 RUN groupadd --force -g $GID $USER
 RUN adduser --disabled-password --no-create-home --uid $UID --gid $GID --gecos '' $USER || true
 
