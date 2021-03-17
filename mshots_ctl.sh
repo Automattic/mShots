@@ -75,9 +75,9 @@ function startservice {
 
 function stopservice {
 	echo "Stopping mShots"
-	start-stop-daemon --stop -q --retry=TERM/10/KILL/5 --pidfile /var/run/mshots.pid --name "mShots.JS - Mas"
+	start-stop-daemon --stop --retry=TERM/10/KILL/5 --pidfile /var/run/mshots.pid --name "mShots.JS - Mas"
 	sleep 2
-	start-stop-daemon --stop -q --oknodo --retry=0/10/KILL/5 --name "mShots.JS - Wor"
+	start-stop-daemon --stop --oknodo --retry=0/10/KILL/5 --name "mShots.JS - Wor"
 
 	rm -f /var/run/mshots.pid
 }
