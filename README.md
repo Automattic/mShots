@@ -60,6 +60,18 @@ Docker can be used to run the mshots service on OSX for dev/testing purposes:
 - Ignore the errors about the missing commands. We don't use the kernel extension in the dev container.
 - Check that mshots is available on localhost:8000, e.g. http://localhost:8000/mshots/v1/example.com
 
+Note that output is a bit tricky.
+
+While docker is running you can use `docker-compose logs` to attach and get it's output, which covers php and mshots.ctl and general docker/apache output.
+
+As a service, `mShots` doesn't have a parent terminal and also has minimal file
+permissions so use `logger.debug( 'msg' )` and `logger.error( 'msg' )`,
+which dump output into `/opt/mshots/logs/mshots.log`.
+
+If you need debug ouput from a dependency (like puppeteer), you can give the file write permissions:
+`chmod a+w logs/mshots.log` and then append to that (or another) file:
+`fs.appendFileSync( 'logs/mshots.log', '\n' + JSON.stringify( { whatever: [ 'data' ] }, null, 2 ) + '\n' )`
+
 ### Troubleshooting
 
 ##### Missing chromium binary
