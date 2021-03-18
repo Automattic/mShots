@@ -67,6 +67,8 @@ Docker can be used to run the mshots service on OSX for dev/testing purposes:
 - Ignore the errors about the missing commands. We don't use the kernel extension in the dev container.
 - Check that mshots is available on localhost:8000, e.g. http://localhost:8000/mshots/v1/example.com
 
+Note that when you enter a new url for the first time, mShots will redirect to https://s0.wp.com/mshots/v1/default while it fetches the url and generates the screenshot. Wait a few seconds and navigate to the url a second time to see the generated image.
+
 Note that output is a bit tricky.
 
 While docker is running you can use `docker-compose logs` to attach and get it's output, which covers php and mshots.ctl and general docker/apache output.
