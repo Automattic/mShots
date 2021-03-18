@@ -81,6 +81,10 @@ If you need debug ouput from a dependency (like puppeteer), you can give the fil
 
 ### Troubleshooting
 
+##### Error response from daemon: Mounts denied
+
+This occurs if docker does not have permissions to mount your local development directory into the container. Follow the given instructions to resolve this - for Docker Desktop, add the path under Docker -> Preferences... -> Resources -> File Sharing.
+
 ##### Missing chromium binary
 The container requires a linux chromium binary, so if puppeteer can't find chromium, run `install.js` in the puppeteer directory in the appropriate environment. Binaries for different OSes can live side-by-side so you can just install both:
 
