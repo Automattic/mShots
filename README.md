@@ -12,7 +12,7 @@ Production Installation
 ------------
 
 These instructions are for setting up mShots for production on a linux host.
-If you only need to run mShots locally skip down to the Dev Setup. 
+If you only need to run mShots locally skip down to the Dev Setup.
 
 If anything goes awry or is unclear in one of these steps, take a look at the "Details" section below for slightly more detailed info.
 
@@ -60,6 +60,8 @@ Dev Setup
 
 Docker can be used to run the mshots service on OSX for dev/testing purposes:
 
+- First, give docker permission to mount your dev directory. For Docker Desktop this is in
+  `Preferences -> Resources-> File Sharing` where you can add the path to where mshots is checked out.
 - `npm install`: This will also configure the docker container for development and build the docker image (unless you pass `--ignore-scripts`)
 - `npm start`: spins up the `mshots` (docker) service in the `mshots-dev` container and starts the mshots (*nix) service within it
 - Ignore the errors about the missing commands. We don't use the kernel extension in the dev container.
