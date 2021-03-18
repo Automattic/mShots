@@ -97,7 +97,7 @@ ls /opt/mshots/node_modules/puppeteer/.local-chromium
 docker-compose exec dev bash -c 'cd node_modules/puppeteer; node install.js'
 ```
 
-The local `/opt/mshots` directory is mounted into the container, so code changes are immediately reflected in the container and generated images will appear under `/opt/mshots/public_html` both in and out of the container.
+The local `/opt/mshots` directory is mounted into the container, so code changes are immediately reflected in the container and generated images will appear under `/opt/mshots/public_html/thumbnails` in the container and `./public_html/thumbnails` relative to your local repo.
 
 The purpose of the container is to provide the linux service environment used by `mshots_ctl.sh` (particularly `start-stop-daemon`), and the javascript generally works inside or outside the container or both.
 
