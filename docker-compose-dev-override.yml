@@ -8,6 +8,7 @@ services:
         - UID
         - GID
         - MSHOTS_MEMCACHE_HOST=memcached
+        - WORKERS 2
     build:
       context: .
       args:

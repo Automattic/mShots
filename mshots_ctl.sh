@@ -15,7 +15,7 @@ INSTALL_DIR=/opt/mshots
 # port to run the mShots.JS service on
 PORT=7777
 # number of workers to put to work
-WORKERS="20"
+WORKERS?="20"
 
 function startservice {
 	if [ ! -d ${INSTALL_DIR} ]; then
