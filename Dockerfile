@@ -57,6 +57,10 @@ ENV APACHE_DOCUMENT_ROOT /opt/mshots/public_html
 RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
 RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
 RUN sed -i 's/80/8000/g' /etc/apache2/sites-available/000-default.conf /etc/apache2/ports.conf
+# Apache requires us to put our "AllowEncodedSlashes" inside our VirtualHost
+# https://stackoverflow.com/questions/4390436/need-to-allow-encoded-slashes-on-apache
+# -> https://bz.apache.org/bugzilla/show_bug.cgi?id=46830
+RUN sed -i '/^<VirtualHost/a   AllowEncodedSlashes On' /etc/apache2/sites-enabled/000-default.conf
 
 # This is where mshots wants to run
 WORKDIR /opt/mshots
