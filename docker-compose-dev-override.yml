@@ -1,0 +1,21 @@
+version: "3"
+services:
+  mshots:
+    container_name: 'mshots-dev'
+    user: "${UID}:${GID}"
+    environment:
+        - USER
+        - UID
+        - GID
+        - MSHOTS_MEMCACHE_HOST=memcached
+        - MSHOTS_WORKERS=2
+    build:
+      context: .
+      args:
+        - UID
+        - GID
+        - USER
+    ports:
+      - '7777:7777'
+    volumes:
+      - ./:/opt/mshots/

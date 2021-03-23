@@ -17,6 +17,8 @@ if ( ! class_exists( 'mShots' ) ) {
 		const VIEWPORT_MIN_H = 320;
 		const VIEWPORT_DEFAULT_W = 1280;
 		const VIEWPORT_DEFAULT_H = 960;
+		const SCREEN_MAX_W = 1600;
+		const SCREEN_MAX_H = 3600;
 
 		protected $snapshot_url = "";
 		protected $snapshot_file = "";
@@ -84,6 +86,26 @@ if ( ! class_exists( 'mShots' ) ) {
 					$this->viewport_h = self::VIEWPORT_MIN_H;
 			}
 
+			if ( isset( $_GET[ 'screen_width' ] ) ) {
+				$this->screen_width = intval( $_GET[ 'screen_width' ] );
+				if ( $this->screen_width > self::SCREEN_MAX_W ) {
+					$this->screen_width = self::SCREEN_MAX_W;
+				}
+			} else {
+				// default to viewport width
+				$this->screen_width = $this->viewport_w;
+			}
+
+			if ( isset( $_GET[ 'screen_height' ] ) ) {
+				$this->screen_height = intval( $_GET[ 'screen_height' ] );
+				if ( $this->screen_height > self::SCREEN_MAX_H ) {
+					$this->screen_height = self::SCREEN_MAX_H;
+				}
+			} else {
+				// default to viewport height
+				$this->screen_height = $this->viewport_h;
+			}
+
 			$this->snapshot_file = $this->resolve_filename( $this->snapshot_url );
 		}
 
@@ -96,7 +118,13 @@ if ( ! class_exists( 'mShots' ) ) {
 			header( "Connection: Close" );
 			flush();
 			ob_end_flush();
-			$m = memcache_connect( '127.0.0.1', 11211 );
+
+			$memcache_host = getenv( 'MSHOTS_MEMCACHE_HOST' );
+			if ( empty( $memcache_host ) ) {
+				$memcache_host = '127.0.0.1';
+			}
+			$m = memcache_connect( $memcache_host, 11211 );
+
 			$urlkey = sha1( $this->snapshot_url );
 			if ( isset( $_GET[ 'requeue' ] ) && ( 'true' != $_GET[ 'requeue' ] ) ) {
 				if ( memcache_get( $m, $urlkey ) )
@@ -105,6 +133,11 @@ if ( ! class_exists( 'mShots' ) ) {
 			memcache_set( $m, $urlkey, 1, 0, 300 );
 
 			$requeue_url = self::renderer . "/queue?url=" . rawurlencode( $this->snapshot_url ) . "&f=" . urlencode( $this->snapshot_file );
+
+			if( $this->screen_width != $this->viewport_w || $this->screen_height != $this->viewport_h ) {
+				$requeue_url .= '&screen_width=' . $this->screen_width . '&screen_height=' . $this->screen_height;
+			}
+
 			if ( $this->viewport_w != self::VIEWPORT_DEFAULT_W || $this->viewport_h != self::VIEWPORT_DEFAULT_H )
 				$requeue_url .= '&vpw=' . $this->viewport_w . '&vph=' . $this->viewport_h;
 
@@ -193,11 +226,11 @@ if ( ! class_exists( 'mShots' ) ) {
 					$original_aspect = $width / $height;
 					// if we are not supplied with the width, use the original image's width
 					$thumb_width = ( isset( $_GET[ 'w' ] ) && $_GET[ 'w' ] ) ? $_GET[ 'w' ] : $width;
-					if ( $thumb_width > 1280 ) $thumb_width = 1280;
+					if ( $thumb_width > self::SCREEN_MAX_W ) $thumb_width = self::SCREEN_MAX_W;
 					if ( $thumb_width < 20 ) $thumb_width = 20;
 					// if we are not supplied with the height, calculate it from the original image aspect ratio
 					$thumb_height = ( isset( $_GET[ 'h' ] ) && $_GET[ 'h' ] ) ? $_GET[ 'h' ] : ( $thumb_width / ( $width / $height ) );
-					if ( $thumb_height > 960 ) $thumb_height = 960;
+					if ( $thumb_height > self::SCREEN_MAX_H ) $thumb_height = self::SCREEN_MAX_H;
 					if ( $thumb_height < 20 ) $thumb_height = 20;
 					$thumb_aspect = $thumb_width / $thumb_height;
 					if ( ( $thumb_width == $width &&  $thumb_height == $height ) ) {

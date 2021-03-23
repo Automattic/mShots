@@ -1,2 +1,5 @@
 node_modules
 *.log
+public_html/thumbnails
+public_html/thumbnails-permanent
+docker-compose.yml

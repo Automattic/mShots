@@ -31,14 +31,6 @@ let tempFile;
  */
 let staticServer;
 
-/**
- * A delay helper function
- * @param {Number} delay 
- */
-function sleep(delay) {
-  return new Promise((r) => setTimeout(r, delay));
-}
-
 beforeAll(async () => {
   staticServer = app.listen(3000);
   browser = await snapshot.init_browser();
@@ -46,16 +38,33 @@ beforeAll(async () => {
 
 afterAll(async () => {
   staticServer.close();
-  browser.close();
-  // wait for the browser to exit
-  await sleep(2000);
+  await browser.close();
 });
 
-// create a tmp file before each test
-beforeEach(() => (tempFile = tmp.fileSync().name));
+let mockSend;
 
-// delete tmp file after every test
-afterEach(() => fs.unlinkSync(tempFile));
+beforeEach(() => {
+  // create a tmp file before each test
+  tempFile = tmp.fileSync().name;
+  // non-invasively receive snapshot queue notifications
+  mockSend = jest.spyOn(process, 'send');
+});
+
+afterEach(
+  () => {
+    // delete tmp file after every test
+    fs.unlinkSync(tempFile)
+    // restore real process.send
+    mockSend.mockRestore();
+})
+
+// Helper function: Queue a snapshot and wait for it to complete
+async function getSnapshotResult( site ) {
+  return new Promise( ( resolve ) => {
+    mockSend.mockImplementationOnce( resolve )
+    snapshot.add_to_queue(site);
+  });
+}
 
 test("add_to_queue: should create a snapshot", async () => {
   let site = {
@@ -65,11 +74,8 @@ test("add_to_queue: should create a snapshot", async () => {
     height: 720,
   };
 
-  snapshot.add_to_queue(site);
-
-  // snapshot polls the queue every 1000ms and screenshots take some time
-  await sleep(4000);
-
+  const result = await getSnapshotResult( site );
+  expect( result.payload.status ).toEqual( 0 );
   expect(fs.existsSync(tempFile));
   expect(fs.statSync(tempFile).size).toBeGreaterThan(0);
 });
@@ -82,11 +88,7 @@ test("add_to_queue: should respect width and height params for normal height sit
     height: 720,
   };
 
-  snapshot.add_to_queue(site);
-
-  // snapshot polls the queue every 1000ms and screenshots take some time
-  await sleep(4000);
-
+  await getSnapshotResult( site );
   const image = sharp(tempFile);
   const metadata = await image.metadata();
 
@@ -102,10 +104,7 @@ test("add_to_queue: should respect width and height params for long sites", asyn
     height: 720,
   };
 
-  snapshot.add_to_queue(site);
-
-  // snapshot polls the queue every 1000ms and screenshots take some time
-  await sleep(4000);
+  await getSnapshotResult( site );
 
   const image = sharp(tempFile);
   const metadata = await image.metadata();
@@ -113,3 +112,23 @@ test("add_to_queue: should respect width and height params for long sites", asyn
   expect(metadata.width).toEqual(1280);
   expect(metadata.height).toEqual(720);
 });
+
+test("add_to_queue: image dimensions should be equal to screenHeight and screenWidth for long enough sites", async () => {
+  let site = {
+    url: "http://127.0.0.1:3000/long-site.html",
+    file: tempFile,
+    width: 1280,
+    height: 720,
+    screenWidth: 1280,
+    screenHeight: 2048,
+  };
+
+  await getSnapshotResult( site );
+
+  const image = sharp(tempFile);
+  const metadata = await image.metadata();
+
+  expect(metadata.width).toEqual(site.screenWidth);
+  expect(metadata.height).toEqual(site.screenHeight);
+  // use 15000ms timeout because longer screenshots need more time
+}, 15000);
