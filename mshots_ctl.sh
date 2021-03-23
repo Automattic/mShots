@@ -15,7 +15,7 @@ INSTALL_DIR=/opt/mshots
 # port to run the mShots.JS service on
 PORT=7777
 # number of workers to put to work
-WORKERS?="20"
+MSHOTS_WORKERS?="20"
 
 function startservice {
 	if [ ! -d ${INSTALL_DIR} ]; then
@@ -68,7 +68,7 @@ function startservice {
 	done
 
 	echo "Starting mShots.JS"
-	ARGS="${INSTALL_DIR}/lib/mshots.js -p $PORT -n $WORKERS 2"
+	ARGS="${INSTALL_DIR}/lib/mshots.js -p $PORT -n $MSHOTS_WORKERS 2"
 	start-stop-daemon -S -q -m -b --pidfile /var/run/mshots.pid --exec /usr/local/node/bin/node --chdir $INSTALL_DIR -- $ARGS
 	sleep 1
 }
