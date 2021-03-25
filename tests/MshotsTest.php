@@ -55,6 +55,7 @@ class MshotsTest extends \PHPUnit\Framework\TestCase {
 	public function test_backwards_compatible_caching( $uri, $expected_file_name ) {
 		$_SERVER['HTTP_HOST'] = 's0.wp.com';
 		$_SERVER['REQUEST_URI'] = $uri;
+		$_GET = [];
 
 		$mshots = new TestMshots();
 
