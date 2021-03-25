@@ -304,11 +304,18 @@ if ( ! class_exists( 'mShots' ) ) {
 			else
 				$s_host = explode( '/', $url_parts[0] )[0];
 			$host = sha1( strtolower( $s_host ) );
-			$file = md5( $snap_url );
-			$viewport = '';
-			if ( $this->viewport_w != self::VIEWPORT_DEFAULT_W || $this->viewport_h != self::VIEWPORT_DEFAULT_H )
-				$viewport = '_' . $this->viewport_w . 'x' . $this->viewport_h;
-			$fullpath = self::location_base . '/' . substr( $host, 0, 3 ) . '/' . $host . '/' . $file . $viewport. '.jpg';
+
+			$dimensions = '';
+			if ( $this->viewport_w != self::VIEWPORT_DEFAULT_W || $this->viewport_h != self::VIEWPORT_DEFAULT_H ) {
+				$dimensions = '_vp' . $this->viewport_w . 'x' . $this->viewport_h;
+			}
+			if( $this->screen_width != $this->viewport_w || $this->screen_height != $this->viewport_h ) {
+				$dimensions .= '_screen' . $this->screen_width . 'x' . $this->screen_height;
+			}
+
+			$file = md5( $snap_url . $dimensions );
+
+			$fullpath = self::location_base . '/' . substr( $host, 0, 3 ) . '/' . $host . '/' . $file . '.jpg';
 
 			return $fullpath;
 		}

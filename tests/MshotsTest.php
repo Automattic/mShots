@@ -78,5 +78,52 @@ class MshotsTest extends \PHPUnit\Framework\TestCase {
 			[ '/mshots/v1/http%3A%2F%2Fcentrodelahoya.es', '/opt/mshots/public_html/thumbnails/9c2/9c2aba28f0d90f31dace1cf44f078ef8a084f07b/b633ca3b16327c692df17133f00d6554.jpg' ]
 		];
 	}
+
+	// Ensure that different viewport and/or screen dimensions get different filenames
+	public function test_unique_caching() {
+		$different_dimensions = [
+			'',
+			'?vpw=320',
+			'?vph=320',
+			'?vph=320&vpw=320',
+			'?screen_height=320',
+			'?screen_width=320',
+			'?screen_height=320&screen_width=320',
+
+			'?vph=640&screen_height=320',
+			'?vph=320&screen_height=640',
+
+			// if screen_height matches vph it's a null-op
+			// '?vph=320&screen_height=320',
+			// '?vph=320&vpw=320&screen_height=320&screen_width=320',
+			// '?vph=640&screen_height=640',
+
+			'?vph=320&vpw=320&screen_height=640',
+			'?vph=320&vpw=320&screen_width=640',
+			'?vph=320&vpw=320&screen_height=640&screen_width=640',
+		];
+
+		$filenames_to_dimensions = array();
+
+		$_SERVER['HTTP_HOST'] = 's0.wp.com';
+
+		foreach ( $different_dimensions as $current_dimensions ) {
+			$_SERVER['REQUEST_URI'] = '/mshots/v1/example.com'  . $current_dimensions;
+
+			$mshots = new TestMshots();
+			// Clear the output buffer to avoid errors
+			ob_end_flush();
+
+			$current_filename = $mshots->get_snapshot_file();
+			$this->assertArrayNotHasKey(
+				$current_filename,
+				$filenames_to_dimensions,
+				'Cache collision: ' . $current_dimensions
+					. ( empty( $filenames_to_dimensions[ $current_filename ] ) ? '' : ' & ' . $filenames_to_dimensions[ $current_filename ] )
+					. '( filename: ' . $current_filename . ' )'
+			);
+			$filenames_to_dimensions [ $current_filename ] = $current_dimensions;
+		}
+	}
 }
 
