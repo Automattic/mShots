@@ -118,8 +118,8 @@ class MshotsTest extends \PHPUnit\Framework\TestCase {
 			$this->assertArrayNotHasKey(
 				$current_filename,
 				$filenames_to_dimensions,
-				'Cache collision: ' . $current_dimensions . ' & '
-					. $filenames_to_dimensions[ $current_filename ]
+				'Cache collision: ' . $current_dimensions
+					. ( empty( $filenames_to_dimensions[ $current_filename ] ) ? '' : ' & ' . $filenames_to_dimensions[ $current_filename ] )
 					. '( filename: ' . $current_filename . ' )'
 			);
 			$filenames_to_dimensions [ $current_filename ] = $current_dimensions;
