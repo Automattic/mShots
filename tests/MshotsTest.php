@@ -112,19 +112,8 @@ class MshotsTest extends \PHPUnit\Framework\TestCase {
 		$_SERVER['HTTP_HOST'] = 's0.wp.com';
 
 		foreach ( $different_dimensions as $current_dimensions ) {
-			$_GET = $current_dimensions;
-
-			$query = implode(
-				'&',
-				array_map(
-					function( $k, $v ) { return $k . '=' . $v; },
-					array_keys( $current_dimensions ),
-					$current_dimensions
-				)
-			);
-			$query = $query ? '?' . $query : '';
-
-			$_SERVER['REQUEST_URI'] = '/mshots/v1/example.com'  . $query;
+			$_SERVER['REQUEST_URI'] = '/mshots/v1/example.com'  . $current_dimensions;
+			$_GET = [];
 
 			$mshots = new TestMshots();
 			// Clear the output buffer to avoid errors
@@ -134,10 +123,10 @@ class MshotsTest extends \PHPUnit\Framework\TestCase {
 			$this->assertArrayNotHasKey(
 				$current_filename,
 				$filenames_to_dimensions,
-				'Cache collision: ' . $query . ' => ' . $current_filename . "\n"
+				'Cache collision: ' . $query . ' => ' . $current_dimensions . "\n"
 					. 'Previous filenames: ' . var_export( $filenames_to_dimensions, true )
 			);
-			$filenames_to_dimensions [ $current_filename ] = $query;
+			$filenames_to_dimensions [ $current_filename ] = $current_dimensions;
 		}
 	}
 }
