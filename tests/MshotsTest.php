@@ -87,24 +87,25 @@ class MshotsTest extends \PHPUnit\Framework\TestCase {
 	// Ensure that different viewport and/or screen dimensions get different filenames
 	public function test_unique_caching() {
 		$different_dimensions = [
-			[],
-			[ 'vpw' => '320' ],
-			[ 'vph' => '320' ],
-			[ 'vpw' => '320', 'vph' => '320' ],
-			[ 'screen_height' => '320' ],
-			[ 'screen_width' => '320' ],
-			[ 'screen_height' => '320', 'screen_width' => '320' ],
+			'',
+			'?vpw=320',
+			'?vph=320',
+			'?vph=320&vpw=320',
+			'?screen_height=320',
+			'?screen_width=320',
+			'?screen_height=320&screen_width=320',
 
-			 [ 'vph' => '640', 'screen_height' => '320' ],
+			'?vph=640&screen_height=320',
+			'?vph=320&screen_height=640',
 
 			// if screen_height matches vph it's a null-op
 			// '?vph=320&screen_height=320',
 			// '?vph=320&vpw=320&screen_height=320&screen_width=320',
 			// '?vph=640&screen_height=640',
 
-			[ 'vpw' => '320', 'vph' => '320', 'screen_height' => '640' ],
-			[ 'vpw' => '320', 'vph' => '320', 'screen_width' => '640' ],
-			[ 'vpw' => '320', 'vph' => '320', 'screen_height' => '640', 'screen_width' => '640' ],
+			'?vph=320&vpw=320&screen_height=640',
+			'?vph=320&vpw=320&screen_width=640',
+			'?vph=320&vpw=320&screen_height=640&screen_width=640',
 		];
 
 		$filenames_to_dimensions = array();
