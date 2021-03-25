@@ -315,7 +315,7 @@ if ( ! class_exists( 'mShots' ) ) {
 
 			$file = md5( $snap_url . $dimensions );
 
-			$fullpath = self::location_base . '/' . substr( $host, 0, 3 ) . '/' . $host . '/' . $file . $viewport. '.jpg';
+			$fullpath = self::location_base . '/' . substr( $host, 0, 3 ) . '/' . $host . '/' . $file . '.jpg';
 
 			return $fullpath;
 		}
