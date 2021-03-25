@@ -55,6 +55,7 @@ class MshotsTest extends \PHPUnit\Framework\TestCase {
 	public function test_backwards_compatible_caching( $uri, $expected_file_name ) {
 		$_SERVER['HTTP_HOST'] = 's0.wp.com';
 		$_SERVER['REQUEST_URI'] = $uri;
+		$_GET = [];
 
 		$mshots = new TestMshots();
 
@@ -68,6 +69,10 @@ class MshotsTest extends \PHPUnit\Framework\TestCase {
 		return [
 			[ '/mshots/invalid/http://example.com', '404' ],
 			[ '/mshots/v1/default', 'default' ],
+			[ '/mshots/v1/wordpress.com', '/opt/mshots/public_html/thumbnails/875/8751a27a0b7ea911b1fd202d34602123df995951/653166773dc88127bd3afe0b6dfe5ea7.jpg' ],
+			[ '/mshots/v1/wordpress.com?vph=333', '/opt/mshots/public_html/thumbnails/875/8751a27a0b7ea911b1fd202d34602123df995951/653166773dc88127bd3afe0b6dfe5ea7_1280x333.jpg' ],
+			[ '/mshots/v1/wordpress.com?vpw=333', '/opt/mshots/public_html/thumbnails/875/8751a27a0b7ea911b1fd202d34602123df995951/653166773dc88127bd3afe0b6dfe5ea7_333x960.jpg' ],
+			[ '/mshots/v1/wordpress.com?vph=333&vpw=333', '/opt/mshots/public_html/thumbnails/875/8751a27a0b7ea911b1fd202d34602123df995951/653166773dc88127bd3afe0b6dfe5ea7_333x333.jpg' ],
 			[ '/mshots/v1/https://public-api.wordpress.com/rest/v1/template/demo/rockfield/reynolds?font_base=Fira%20Sans&font_headings=Playfair%20Display&site_title=Reynolds&language=ko',
 			 '/opt/mshots/public_html/thumbnails/ed2/ed271f0f0255e9d784e345dc2f0d8cc48ca26019/e295c5f761af9ac029f49726f50b16b1.jpg' ],
 			// A couple of examples from a google search:
@@ -109,6 +114,7 @@ class MshotsTest extends \PHPUnit\Framework\TestCase {
 
 		foreach ( $different_dimensions as $current_dimensions ) {
 			$_SERVER['REQUEST_URI'] = '/mshots/v1/example.com'  . $current_dimensions;
+			$_GET = [];
 
 			$mshots = new TestMshots();
 			// Clear the output buffer to avoid errors
@@ -118,9 +124,8 @@ class MshotsTest extends \PHPUnit\Framework\TestCase {
 			$this->assertArrayNotHasKey(
 				$current_filename,
 				$filenames_to_dimensions,
-				'Cache collision: ' . $current_dimensions
-					. ( empty( $filenames_to_dimensions[ $current_filename ] ) ? '' : ' & ' . $filenames_to_dimensions[ $current_filename ] )
-					. '( filename: ' . $current_filename . ' )'
+				'Cache collision: ' . $query . ' => ' . $current_dimensions . "\n"
+					. 'Previous filenames: ' . var_export( $filenames_to_dimensions, true )
 			);
 			$filenames_to_dimensions [ $current_filename ] = $current_dimensions;
 		}
