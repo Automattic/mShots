@@ -8,6 +8,7 @@ if ( ! class_exists( 'mShots' ) ) {
 		const disable_requeue = false;
 		const location_header = 'X-Accel-Redirect: ';
 		const location_base = '/opt/mshots/public_html/thumbnails';
+		const permanent_base = '/opt/mshots/public_html/thumbnails-permanent';
 		const snapshot_default = 'https://s0.wp.com/mshots/v1/default';
 		const snapshot_default_file = '/opt/mshots/public_html/images/default.gif';
 
@@ -281,9 +282,16 @@ if ( ! class_exists( 'mShots' ) ) {
 			$viewport = '';
 			if ( $this->viewport_w != self::VIEWPORT_DEFAULT_W || $this->viewport_h != self::VIEWPORT_DEFAULT_H )
 				$viewport = '_' . $this->viewport_w . 'x' . $this->viewport_h;
-			$fullpath = self::location_base . '/' . substr( $host, 0, 3 ) . '/' . $host . '/' . $file . $viewport. '.jpg';
+			$fullpath = $this->get_base( $s_host ) . '/' . substr( $host, 0, 3 ) . '/' . $host . '/' . $file . $viewport. '.jpg';
 
 			return $fullpath;
+		}
+
+		private function get_base( $host ) {
+			if ( 'public-api.wordpress.com' === $host ) {
+				return self::permanent_base;
+			}
+			return self::location_base;
 		}
 
 		private function resolve_mshots_url( $url ) {
