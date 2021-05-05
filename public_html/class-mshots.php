@@ -19,6 +19,8 @@ if ( ! class_exists( 'mShots' ) ) {
 		const VIEWPORT_DEFAULT_H = 960;
 		const SCREEN_MAX_W = 1600;
 		const SCREEN_MAX_H = 3600;
+		const SCALE_FACTOR_VALUES = [1, 2];
+		const SCALE_FACTOR_DEFAULT = 1;
 
 		protected $snapshot_url = "";
 		protected $snapshot_file = "";
@@ -27,6 +29,7 @@ if ( ! class_exists( 'mShots' ) ) {
 		protected $invalidate = false;
 		protected $viewport_w = self::VIEWPORT_DEFAULT_W;
 		protected $viewport_h = self::VIEWPORT_DEFAULT_H;
+		protected $scale_factor = self::SCALE_FACTOR_DEFAULT;
 
 		function __construct() {
 			ob_start();
@@ -106,6 +109,13 @@ if ( ! class_exists( 'mShots' ) ) {
 				$this->screen_height = $this->viewport_h;
 			}
 
+			if ( isset( $_GET[ 'scale' ] ) ) {
+				$this->scale_factor = intval( $_GET[ 'scale' ] );
+				if ( ! in_array( $this->scale_factor, self::SCALE_FACTOR_VALUES, true ) ) {
+					$this->scale_factor = self::SCALE_FACTOR_DEFAULT;
+				}
+			}
+
 			$this->snapshot_file = $this->resolve_filename( $this->snapshot_url );
 		}
 
@@ -140,6 +150,10 @@ if ( ! class_exists( 'mShots' ) ) {
 
 			if ( $this->viewport_w != self::VIEWPORT_DEFAULT_W || $this->viewport_h != self::VIEWPORT_DEFAULT_H )
 				$requeue_url .= '&vpw=' . $this->viewport_w . '&vph=' . $this->viewport_h;
+
+			if ( $this->scale_factor != self::SCALE_FACTOR_DEFAULT ) {
+				$requeue_url .= '&scale=' . $this->scale_factor;
+			}
 
 			$ch = curl_init( $requeue_url );
 			curl_setopt( $ch, CURLOPT_TIMEOUT, 10 );
@@ -306,16 +320,22 @@ if ( ! class_exists( 'mShots' ) ) {
 			$host = sha1( strtolower( $s_host ) );
 
 			$file = md5( $snap_url );
-			$viewport = '';
-			if ( $this->viewport_w != self::VIEWPORT_DEFAULT_W || $this->viewport_h != self::VIEWPORT_DEFAULT_H )
-				$viewport = '_' . $this->viewport_w . 'x' . $this->viewport_h;
 
-			$capture_size = '';
-			if( $this->screen_width != $this->viewport_w || $this->screen_height != $this->viewport_h ) {
-				$capture_size .= '_screen' . $this->screen_width . 'x' . $this->screen_height;
+			$suffix = '';
+
+			if ( $this->viewport_w != self::VIEWPORT_DEFAULT_W || $this->viewport_h != self::VIEWPORT_DEFAULT_H ) {
+				$suffix .= '_' . $this->viewport_w . 'x' . $this->viewport_h;
 			}
 
-			$fullpath = self::location_base . '/' . substr( $host, 0, 3 ) . '/' . $host . '/' . $file . $viewport . $capture_size . '.jpg';
+			if( $this->screen_width != $this->viewport_w || $this->screen_height != $this->viewport_h ) {
+				$suffix .= '_screen' . $this->screen_width . 'x' . $this->screen_height;
+			}
+
+			if ( $this->scale_factor != self::SCALE_FACTOR_DEFAULT ) {
+				$suffix .= "_{$this->scale_factor}x";
+			}
+
+			$fullpath = self::location_base . '/' . substr( $host, 0, 3 ) . '/' . $host . '/' . $file . $suffix . '.jpg';
 
 			return $fullpath;
 		}
