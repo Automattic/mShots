@@ -40,10 +40,6 @@ of this class is the "disable_requeue" constant, but changing this to true you e
 can be used if the service misbehaves for any reason. With this setting enabled existing thumbnails will be served, but no new thumbnails
 are generated.
 
-**Snapper node.JS Module (code in "src")**
-
-This node backend is no longer in use, but is left in it's latest incarnation (bug fixes) should someone wish to continue using it.
-
 **mshots node.JS Program (code in "lib")**
 
 Control the execution of the application with the `mshots_ctl.sh` bash script in the root directory or by manually running the following command from the terminal, whilst in the  `/opt/mshots/` directory:
