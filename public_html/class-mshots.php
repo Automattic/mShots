@@ -11,8 +11,8 @@ if ( ! class_exists( 'mShots' ) ) {
 		const snapshot_default = 'https://s0.wp.com/mshots/v1/default';
 		const snapshot_default_file = '/opt/mshots/public_html/images/default.gif';
 
-		const VIEWPORT_MAX_W = 1600;
-		const VIEWPORT_MAX_H = 1200;
+		const VIEWPORT_MAX_W = 3072;
+		const VIEWPORT_MAX_H = 3072;
 		const VIEWPORT_MIN_W = 320;
 		const VIEWPORT_MIN_H = 320;
 		const VIEWPORT_DEFAULT_W = 1280;
@@ -74,19 +74,11 @@ if ( ! class_exists( 'mShots' ) ) {
 			}
 
 			if ( isset( $_GET[ 'vpw' ] ) ) {
-				$this->viewport_w = intval( $_GET[ 'vpw' ] );
-				if ( $this->viewport_w > self::VIEWPORT_MAX_W )
-					$this->viewport_w = self::VIEWPORT_MAX_W;
-				else if ( $this->viewport_w < self::VIEWPORT_MIN_W )
-					$this->viewport_w = self::VIEWPORT_MIN_W;
+				$this->viewport_w = min( max( self::VIEWPORT_MIN_W, intval( $_GET[ 'vpw' ] ) ), self::VIEWPORT_MAX_W );
 			}
 
 			if ( isset( $_GET[ 'vph' ] ) ) {
-				$this->viewport_h = intval( $_GET[ 'vph' ] );
-				if ( $this->viewport_h > self::VIEWPORT_MAX_H )
-					$this->viewport_h = self::VIEWPORT_MAX_H;
-				else if ( $this->viewport_h < self::VIEWPORT_MIN_H )
-					$this->viewport_h = self::VIEWPORT_MIN_H;
+				$this->viewport_h = min( max( self::VIEWPORT_MIN_H, intval( $_GET[ 'vph' ] ) ), self::VIEWPORT_MAX_H );
 			}
 
 			if ( isset( $_GET[ 'screen_width' ] ) ) {
@@ -144,7 +136,7 @@ if ( ! class_exists( 'mShots' ) ) {
 
 			$requeue_url = self::renderer . "/queue?url=" . rawurlencode( $this->snapshot_url ) . "&f=" . urlencode( $this->snapshot_file );
 
-			if( $this->screen_width != $this->viewport_w || $this->screen_height != $this->viewport_h ) {
+			if ( $this->screen_width != $this->viewport_w || $this->screen_height != $this->viewport_h ) {
 				$requeue_url .= '&screen_width=' . $this->screen_width . '&screen_height=' . $this->screen_height;
 			}
 
@@ -234,34 +226,37 @@ if ( ! class_exists( 'mShots' ) ) {
 		private function image_resize_and_output( $image_filename ) {
 			try {
 				if ( $image = imagecreatefromstring( file_get_contents( $image_filename ) ) ) {
-					header("Content-Type: image/jpeg");
-					$width = imagesx($image);
-					$height = imagesy($image);
+					header( 'Content-Type: image/jpeg' );
+					$width = imagesx( $image );
+					$height = imagesy( $image );
 					$original_aspect = $width / $height;
 					// if we are not supplied with the width, use the original image's width
 					$thumb_width = ( isset( $_GET[ 'w' ] ) && $_GET[ 'w' ] ) ? $_GET[ 'w' ] : $width;
-					if ( $thumb_width > self::SCREEN_MAX_W ) $thumb_width = self::SCREEN_MAX_W;
-					if ( $thumb_width < 20 ) $thumb_width = 20;
+					// keep the requested width within image bounds and limits
+					$thumb_width = max( 20, min( $width, min( $thumb_width, self::VIEWPORT_MAX_W ) ) );
+
 					// if we are not supplied with the height, calculate it from the original image aspect ratio
 					$thumb_height = ( isset( $_GET[ 'h' ] ) && $_GET[ 'h' ] ) ? $_GET[ 'h' ] : ( $thumb_width / ( $width / $height ) );
-					if ( $thumb_height > self::SCREEN_MAX_H ) $thumb_height = self::SCREEN_MAX_H;
-					if ( $thumb_height < 20 ) $thumb_height = 20;
+					// keep the requested height within image bounds and limits
+					$thumb_height = max( 20, min( $height, min( $thumb_height, self::VIEWPORT_MAX_H ) ) );
+
 					$thumb_aspect = $thumb_width / $thumb_height;
-					if ( ( $thumb_width == $width &&  $thumb_height == $height ) ) {
+					if ( $thumb_width == $width && $thumb_height == $height ) {
 						imagejpeg( $image, null, 90 );
-					} else {
-						if ( $original_aspect >= $thumb_aspect ) {
-							$new_height = $thumb_height;
-							$new_width = $width / ($height / $thumb_height);
-						} else {
-							$new_width = $thumb_width;
-							$new_height = $height / ($width / $thumb_width);
-						}
-						$thumb = imagecreatetruecolor( $thumb_width, $thumb_height );
-						$indentX = 0 - ( $new_width - $thumb_width ) / 2;
-						imagecopyresampled( $thumb, $image, $indentX, 0, 0, 0, $new_width, $new_height, $width, $height );
-						imagejpeg( $thumb, null, 95 );
+						return;
 					}
+
+					if ( $original_aspect >= $thumb_aspect ) {
+						$new_height = $thumb_height;
+						$new_width = $width / ($height / $thumb_height);
+					} else {
+						$new_width = $thumb_width;
+						$new_height = $height / ($width / $thumb_width);
+					}
+					$thumb = imagecreatetruecolor( $thumb_width, $thumb_height );
+					$indentX = 0 - ( $new_width - $thumb_width ) / 2;
+					imagecopyresampled( $thumb, $image, $indentX, 0, 0, 0, $new_width, $new_height, $width, $height );
+					imagejpeg( $thumb, null, 95 );
 				} else {
 					error_log( "error processing filename : " . $image_filename );
 					if ( 0 < strlen( $image_filename ) ) {
