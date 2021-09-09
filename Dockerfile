@@ -1,4 +1,4 @@
-FROM php:7.4-apache
+FROM php:7.4-apache-buster
 
 # Note ARGs UID, GID and USER are defined later to reduce rebuilding time
 
