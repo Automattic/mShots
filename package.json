@@ -31,6 +31,7 @@
 	"dependencies": {
 		"ip": "^1.1.5",
 		"log4js": ">=0.6.0",
+		"memcached": "^2.2.2",
 		"puppeteer": "^10.2"
 	},
 	"devDependencies": {
