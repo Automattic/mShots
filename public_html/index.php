@@ -19,7 +19,8 @@ function run_url_analyzer() {
 	require_once  './class-url-analyzer.php';
 
 	$url_analyzer = new url_analyzer();
-	$url_analyzer->analyze();
+	$response = $url_analyzer->handle();
+	echo $response;
 }
 
 function run_mshots() {
