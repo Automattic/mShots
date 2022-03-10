@@ -29,6 +29,9 @@
 		"prepare": "npm run config:dev; npm run build; npm run docker:install-chromium-binary"
 	},
 	"dependencies": {
+		"@yatiac/name-that-color": "^1.1.0",
+		"canvas": "^2.9.0",
+		"extract-colors": "^1.1.21",
 		"ip": "^1.1.5",
 		"log4js": ">=0.6.0",
 		"memcached": "^2.2.2",

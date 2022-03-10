@@ -7,6 +7,7 @@ jest.mock("../lib/blacklist.js", () => ({
 }));
 
 const snapshot = require("../lib/snapshot.js");
+const common = require("../lib/common.js");
 const tmp = require("tmp");
 const fs = require("fs");
 const express = require("express");
@@ -33,7 +34,7 @@ let staticServer;
 
 beforeAll(async () => {
   staticServer = app.listen(3000);
-  browser = await snapshot.init_browser();
+  browser = await common.get_browser();
 });
 
 afterAll(async () => {

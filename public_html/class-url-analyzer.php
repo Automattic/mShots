@@ -42,7 +42,6 @@ class url_analyzer {
 		// If there was no cache entry for the key, we trigger the node service to start analyzing the URL
 		$this->call_analyzer( $url, $cache_key );
 
-
 		$this->send_response([
 			'url' => $url,
 			'status' => 'pending'
