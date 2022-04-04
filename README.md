@@ -82,6 +82,10 @@ If you need debug ouput from a dependency (like puppeteer), you can give the fil
 `chmod a+w logs/mshots.log` and then append to that (or another) file:
 `fs.appendFileSync( 'logs/mshots.log', '\n' + JSON.stringify( { whatever: [ 'data' ] }, null, 2 ) + '\n' )`
 
+### Performance testing
+
+Performance tests live in `scripts/performance-test` and use the locust python framework. See [Performance testing readme](./scripts/performance-test/README.md) 
+
 ### Troubleshooting
 
 ##### Error response from daemon: Mounts denied
