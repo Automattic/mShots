@@ -9,7 +9,7 @@
 		"url": "git+https://github.com/automattic/mshots.git"
 	},
 	"engines": {
-		"node": ">= 12.0"
+		"node": "14.x"
 	},
 	"scripts": {
 		"test": "npm run test:php && npm run test:js",
