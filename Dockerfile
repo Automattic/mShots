@@ -21,9 +21,19 @@ RUN apt-get update \
     && wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
     && sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list' \
     && apt-get update \
-    && apt-get install -y google-chrome-unstable fonts-ipafont-gothic fonts-wqy-zenhei fonts-thai-tlwg fonts-kacst fonts-freefont-ttf \
-      --no-install-recommends \
-    && rm -rf /var/lib/apt/lists/*
+    && apt-get install -y fonts-ipafont-gothic fonts-wqy-zenhei fonts-thai-tlwg fonts-kacst fonts-freefont-ttf \
+    --no-install-recommends
+
+
+# For arm64 builds on M1 Macs, google-chrome-unstable is not available, so we install chromium instead.
+# We use TARGETARCH to switch between these packages
+# see: https://docs.docker.com/engine/reference/builder/#automatic-platform-args-in-the-global-scope
+ARG TARGETARCH
+# ARG variables are not available inside the container, we make this visible inside the container
+# using ARCH so that we can switch the puppeteer executable based on ARCH. (see lib/snapshot.js)
+ENV ARCH $TARGETARCH
+RUN apt-get install -y $( if [ "$TARGETARCH" = "arm64" ]; then echo "chromium"; else echo "google-chrome-unstable"; fi; ) --no-install-recommends
+RUN rm -rf /var/lib/apt/lists/*
 
 # Install memcache extension
 RUN apt-get update \
@@ -34,9 +44,9 @@ RUN pecl install memcache-4.0.5.2 \
 
 # Install GD
 RUN apt-get update && apt-get install -y \
-        libfreetype6-dev \
-        libjpeg62-turbo-dev \
-        libpng-dev \
+    libfreetype6-dev \
+    libjpeg62-turbo-dev \
+    libpng-dev \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j$(nproc) gd
 
