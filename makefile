@@ -1,7 +1,6 @@
 dev:
-	echo "UID=$(id -u)
-    GID=$(id -g)" > .env; docker-compose -f docker-compose-core.yml -f docker-compose-dev-override.yml config > docker-compose.yml; npm run build"
-	docker-compose build
+	echo "UID=$$(id -u)\nGID=$$(id -g)" > .env
+	docker-compose -f docker-compose-core.yml -f docker-compose-dev-override.yml config > docker-compose.yml	docker-compose build
 	docker-compose run mshots bash -c 'npm install --ignore-scripts'
 	docker-compose run mshots bash -c 'cd node_modules/puppeteer; node install.js'
 
