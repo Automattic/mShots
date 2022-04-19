@@ -32,7 +32,7 @@ function startservice {
 	fi
 
 	running=`lsmod | grep vfb | awk '{ print $(1) }'`
-	if [ -z $running ] ; then
+	if [ -z $running ] && [ "$ARCH" != "arm64" ] ; then
 		echo "loading vfb"
 		modprobe -r vfb
 		modprobe vfb vfb_enable=yes videomemorysize=7733248
