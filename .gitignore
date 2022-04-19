@@ -3,3 +3,6 @@ node_modules
 public_html/thumbnails
 public_html/thumbnails-permanent
 docker-compose.yml
+stats/
+.env
+logs/
