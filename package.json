@@ -19,7 +19,7 @@
 		"start:docker": "docker-compose up -d",
 		"stop:docker": "docker-compose down",
 		"start:mshots": "docker-compose exec mshots ./mshots_ctl.sh start",
-		"stop": "docker-compose exec mshots sh -c 'test -f /var/run/mshots.pid && kill `cat /var/run/mshots.pid` && echo Master Process killed && rm -f /var/run/mshots.pid || echo already stopped'",
+		"stop": "docker-compose exec mshots sh -c 'test -f /var/run/mshots.pid && kill `cat /var/run/mshots.pid` && echo Master Process killed && rm -f /var/run/mshots.pid || echo already stopped'; npm run stop:docker",
 		"restart": "npm run stop; npm run start",
 		"status": "docker-compose exec mshots bash -c 'echo mShots Master process: `set -o pipefail; ps ax | grep Master | grep -v grep | awk \"{print \\\\$1}\" || echo not running` ; echo Workers: `ps ax | grep Worker | grep -v grep | wc -l`'",
 		"build": "docker-compose build",
@@ -40,7 +40,7 @@
 	"devDependencies": {
 		"express": "^4.17.1",
 		"jest": "^25.3.0",
-		"sharp": "^0.25.2",
+		"sharp": "^0.30.3",
 		"tmp": "^0.1.0"
 	}
 }
