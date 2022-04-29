@@ -9,21 +9,29 @@
 		"url": "git+https://github.com/automattic/mshots.git"
 	},
 	"engines": {
-		"node": "14.x"
+		"node": ">= 12.0"
 	},
 	"scripts": {
 		"test": "npm run test:php && npm run test:js",
 		"test:php": "phpunit -c tests/phpunit.xml tests",
-		"test:js": "jest"
+		"test:js": "jest",
+		"start": "npm run start:docker && npm run start:mshots && echo mshots service successfully in the mshots docker container. && echo Port 8000 is mapped to localhost, e.g. http://localhost:8000/mshots/v1/example.com",
+		"start:docker": "docker-compose up -d",
+		"stop:docker": "docker-compose down",
+		"start:mshots": "docker-compose exec mshots ./mshots_ctl.sh start",
+		"stop": "docker-compose exec mshots sh -c 'test -f /var/run/mshots.pid && kill `cat /var/run/mshots.pid` && echo Master Process killed && rm -f /var/run/mshots.pid || echo already stopped'; npm run stop:docker",
+		"restart": "npm run stop; npm run start",
+		"status": "docker-compose exec mshots bash -c 'echo mShots Master process: `set -o pipefail; ps ax | grep Master | grep -v grep | awk \"{print \\\\$1}\" || echo not running` ; echo Workers: `ps ax | grep Worker | grep -v grep | wc -l`'",
+		"build": "docker-compose build",
+		"config:core": "rm .env; cp docker-compose-core.yml docker-compose.yml ; npm run build",
+		"config:dev": "echo \"UID=$(id -u)\nGID=$(id -g)\" > .env; docker-compose -f docker-compose-core.yml -f docker-compose-dev-override.yml config > docker-compose.yml; npm run build",
+		"docker:install-chromium-binary": "docker-compose run mshots bash -c 'cd node_modules/puppeteer; node install.js'",
+		"prepare": "npm run config:dev; npm run build; npm run docker:install-chromium-binary"
 	},
 	"dependencies": {
 		"ip": "^1.1.5",
 		"log4js": ">=0.6.0",
-		"memcached": "^2.2.2",
-		"puppeteer": "^10.2",
-		"@yatiac/name-that-color": "^1.1.0",
-		"canvas": "^2.9.0",
-		"extract-colors": "^1.1.21"
+		"puppeteer": "^10.2"
 	},
 	"devDependencies": {
 		"express": "^4.17.1",
