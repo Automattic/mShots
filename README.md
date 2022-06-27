@@ -82,6 +82,11 @@ If you need debug ouput from a dependency (like puppeteer), you can give the fil
 `chmod a+w logs/mshots.log` and then append to that (or another) file:
 `fs.appendFileSync( 'logs/mshots.log', '\n' + JSON.stringify( { whatever: [ 'data' ] }, null, 2 ) + '\n' )`
 
+If you need debug a domain that points to a specific IP address, you can set up `HOST_RULES` in `.env` file. For example
+```bash
+HOST_RULES=MAP example1.com x.x.x.x,MAP example2.com x.x.x.x
+```
+
 ### Performance testing
 
 Performance tests live in `scripts/performance-test` and use the locust python framework. See [Performance testing readme](./scripts/performance-test/README.md) 
