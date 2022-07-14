@@ -31,7 +31,7 @@
 	"dependencies": {
 		"ip": "^1.1.5",
 		"log4js": ">=6.4.0",
-		"puppeteer": "^10.2"
+		"puppeteer": "^15.4"
 	},
 	"devDependencies": {
 		"express": "^4.17.1",
