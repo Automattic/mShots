@@ -17,6 +17,7 @@ if ( ! class_exists( 'mShots' ) ) {
 		const VIEWPORT_MIN_H = 320;
 		const VIEWPORT_DEFAULT_W = 1280;
 		const VIEWPORT_DEFAULT_H = 960;
+		const DEFAULT_QUALITY = 90;
 		const SCREEN_MAX_W = 1600;
 		const SCREEN_MAX_H = 3600;
 		const SCALE_FACTOR_VALUES = [1, 2];
@@ -75,6 +76,12 @@ if ( ! class_exists( 'mShots' ) ) {
 
 			if ( isset( $_GET[ 'vpw' ] ) ) {
 				$this->viewport_w = min( max( self::VIEWPORT_MIN_W, intval( $_GET[ 'vpw' ] ) ), self::VIEWPORT_MAX_W );
+			}
+
+			if ( isset( $_GET[ 'quality' ] ) && is_numeric( $_GET[ 'quality' ] ) ) {
+				$this->quality = intval( $_GET[ 'quality' ] );
+			} else {
+				$this->quality = self::DEFAULT_QUALITY;
 			}
 
 			if ( isset( $_GET[ 'vph' ] ) ) {
@@ -147,6 +154,10 @@ if ( ! class_exists( 'mShots' ) ) {
 				$requeue_url .= '&scale=' . $this->scale_factor;
 			}
 
+			if ( $this->quality != self::DEFAULT_QUALITY ) {
+				$requeue_url .= '&quality=' . $this->quality;
+			}
+
 			$ch = curl_init( $requeue_url );
 			curl_setopt( $ch, CURLOPT_TIMEOUT, 10 );
 			curl_exec( $ch );
@@ -188,7 +199,7 @@ if ( ! class_exists( 'mShots' ) ) {
 					header( "Cache-Control: public, max-age=43200" );
 				}
 			}
-			$this->image_resize_and_output( $this->snapshot_file );
+			$this->image_resize_and_output( $this->snapshot_file, $this->quality );
 		}
 
 		public function must_requeue() {
@@ -223,7 +234,7 @@ if ( ! class_exists( 'mShots' ) ) {
 			header( 'Pragma: no-cache' );
 		}
 
-		private function image_resize_and_output( $image_filename ) {
+		private function image_resize_and_output( $image_filename, $quality ) {
 			try {
 				if ( $image = imagecreatefromstring( file_get_contents( $image_filename ) ) ) {
 					header( 'Content-Type: image/jpeg' );
@@ -242,7 +253,7 @@ if ( ! class_exists( 'mShots' ) ) {
 
 					$thumb_aspect = $thumb_width / $thumb_height;
 					if ( $thumb_width == $width && $thumb_height == $height ) {
-						imagejpeg( $image, null, 90 );
+						imagejpeg( $image, null, $quality );
 						return;
 					}
 
@@ -256,7 +267,7 @@ if ( ! class_exists( 'mShots' ) ) {
 					$thumb = imagecreatetruecolor( $thumb_width, $thumb_height );
 					$indentX = 0 - ( $new_width - $thumb_width ) / 2;
 					imagecopyresampled( $thumb, $image, $indentX, 0, 0, 0, $new_width, $new_height, $width, $height );
-					imagejpeg( $thumb, null, 95 );
+					imagejpeg( $thumb, null, $quality );
 				} else {
 					error_log( "error processing filename : " . $image_filename );
 					if ( 0 < strlen( $image_filename ) ) {
@@ -329,6 +340,8 @@ if ( ! class_exists( 'mShots' ) ) {
 			if ( $this->scale_factor != self::SCALE_FACTOR_DEFAULT ) {
 				$suffix .= "_{$this->scale_factor}x";
 			}
+
+			$suffix .= "_{$this->quality}q";			
 
 			$fullpath = self::location_base . '/' . substr( $host, 0, 3 ) . '/' . $host . '/' . $file . $suffix . '.jpg';
 
