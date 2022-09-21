@@ -17,6 +17,8 @@ if ( ! class_exists( 'mShots' ) ) {
 		const VIEWPORT_MIN_H = 320;
 		const VIEWPORT_DEFAULT_W = 1280;
 		const VIEWPORT_DEFAULT_H = 960;
+		const DEFAULT_FORMAT = 'jpeg';
+		const ALLOWED_FORMATS = ['png', 'jpeg'];
 		const SCREEN_MAX_W = 1600;
 		const SCREEN_MAX_H = 3600;
 		const SCALE_FACTOR_VALUES = [1, 2];
@@ -75,6 +77,12 @@ if ( ! class_exists( 'mShots' ) ) {
 
 			if ( isset( $_GET[ 'vpw' ] ) ) {
 				$this->viewport_w = min( max( self::VIEWPORT_MIN_W, intval( $_GET[ 'vpw' ] ) ), self::VIEWPORT_MAX_W );
+			}
+
+			if ( isset( $_GET[ 'format' ] ) && in_array( $_GET[ 'format' ], self::ALLOWED_FORMATS ) ) {
+				$this->format = $_GET[ 'format' ];
+			} else {
+				$this->format = self::DEFAULT_FORMAT;
 			}
 
 			if ( isset( $_GET[ 'vph' ] ) ) {
@@ -147,6 +155,8 @@ if ( ! class_exists( 'mShots' ) ) {
 				$requeue_url .= '&scale=' . $this->scale_factor;
 			}
 
+			$requeue_url .= '&format=' . $this->format;
+
 			$ch = curl_init( $requeue_url );
 			curl_setopt( $ch, CURLOPT_TIMEOUT, 10 );
 			curl_exec( $ch );
@@ -188,7 +198,7 @@ if ( ! class_exists( 'mShots' ) ) {
 					header( "Cache-Control: public, max-age=43200" );
 				}
 			}
-			$this->image_resize_and_output( $this->snapshot_file );
+			$this->image_resize_and_output( $this->snapshot_file, $this->format );
 		}
 
 		public function must_requeue() {
@@ -223,10 +233,10 @@ if ( ! class_exists( 'mShots' ) ) {
 			header( 'Pragma: no-cache' );
 		}
 
-		private function image_resize_and_output( $image_filename ) {
+		private function image_resize_and_output( $image_filename, $format ) {
 			try {
 				if ( $image = imagecreatefromstring( file_get_contents( $image_filename ) ) ) {
-					header( 'Content-Type: image/jpeg' );
+					header( "Content-Type: image/$format" );
 					$width = imagesx( $image );
 					$height = imagesy( $image );
 					$original_aspect = $width / $height;
@@ -242,7 +252,11 @@ if ( ! class_exists( 'mShots' ) ) {
 
 					$thumb_aspect = $thumb_width / $thumb_height;
 					if ( $thumb_width == $width && $thumb_height == $height ) {
-						imagejpeg( $image, null, 90 );
+						if( $format === 'jpeg' ) {
+							imagejpeg( $image, null, 90 );
+						} else {
+							imagepng( $image );
+						}
 						return;
 					}
 
@@ -256,7 +270,12 @@ if ( ! class_exists( 'mShots' ) ) {
 					$thumb = imagecreatetruecolor( $thumb_width, $thumb_height );
 					$indentX = 0 - ( $new_width - $thumb_width ) / 2;
 					imagecopyresampled( $thumb, $image, $indentX, 0, 0, 0, $new_width, $new_height, $width, $height );
-					imagejpeg( $thumb, null, 95 );
+					if( $format === 'jpeg' ) {
+						imagejpeg( $thumb, null, 90 );
+					} else {
+						imagepng( $thumb );
+					}
+					return;
 				} else {
 					error_log( "error processing filename : " . $image_filename );
 					if ( 0 < strlen( $image_filename ) ) {
@@ -329,8 +348,10 @@ if ( ! class_exists( 'mShots' ) ) {
 			if ( $this->scale_factor != self::SCALE_FACTOR_DEFAULT ) {
 				$suffix .= "_{$this->scale_factor}x";
 			}
+			
+			$extension = $this->format === 'jpeg' ? '.jpg' : '.png';
 
-			$fullpath = self::location_base . '/' . substr( $host, 0, 3 ) . '/' . $host . '/' . $file . $suffix . '.jpg';
+			$fullpath = self::location_base . '/' . substr( $host, 0, 3 ) . '/' . $host . '/' . $file . $suffix . $extension;
 
 			return $fullpath;
 		}
