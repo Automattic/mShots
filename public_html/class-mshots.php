@@ -23,6 +23,10 @@ if ( ! class_exists( 'mShots' ) ) {
 		const SCREEN_MAX_H = 3600;
 		const SCALE_FACTOR_VALUES = [1, 2];
 		const SCALE_FACTOR_DEFAULT = 1;
+		const FORMAT_TO_EXTENSION = [
+			'png' => '.png',
+			'jpeg' => '.jpg',
+		];
 
 		protected $snapshot_url = "";
 		protected $snapshot_file = "";
@@ -347,7 +351,7 @@ if ( ! class_exists( 'mShots' ) ) {
 				$suffix .= "_{$this->scale_factor}x";
 			}
 
-			$extension = $this->format === 'jpeg' ? '.jpg' : '.png';
+			$extension = self::FORMAT_TO_EXTENSION[$this->format];
 
 			$fullpath = self::location_base . '/' . substr( $host, 0, 3 ) . '/' . $host . '/' . $file . $suffix . $extension;
 
