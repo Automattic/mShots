@@ -261,6 +261,7 @@ if ( ! class_exists( 'mShots' ) ) {
 						} else {
 							imagepng( $image );
 						}
+						return;
 					}
 
 					if ( $original_aspect >= $thumb_aspect ) {
