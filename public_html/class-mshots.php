@@ -17,12 +17,12 @@ if ( ! class_exists( 'mShots' ) ) {
 		const VIEWPORT_MIN_H = 320;
 		const VIEWPORT_DEFAULT_W = 1280;
 		const VIEWPORT_DEFAULT_H = 960;
-		const DEFAULT_FORMAT = 'jpeg';
-		const ALLOWED_FORMATS = ['png', 'jpeg'];
 		const SCREEN_MAX_W = 1600;
 		const SCREEN_MAX_H = 3600;
 		const SCALE_FACTOR_VALUES = [1, 2];
 		const SCALE_FACTOR_DEFAULT = 1;
+		const DEFAULT_FORMAT = 'jpeg';
+		const ALLOWED_FORMATS = ['png', 'jpeg'];
 		const FORMAT_TO_EXTENSION = [
 			'png' => '.png',
 			'jpeg' => '.jpg',
