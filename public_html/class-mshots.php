@@ -17,12 +17,16 @@ if ( ! class_exists( 'mShots' ) ) {
 		const VIEWPORT_MIN_H = 320;
 		const VIEWPORT_DEFAULT_W = 1280;
 		const VIEWPORT_DEFAULT_H = 960;
-		const DEFAULT_FORMAT = 'jpeg';
-		const ALLOWED_FORMATS = ['png', 'jpeg'];
 		const SCREEN_MAX_W = 1600;
 		const SCREEN_MAX_H = 3600;
 		const SCALE_FACTOR_VALUES = [1, 2];
 		const SCALE_FACTOR_DEFAULT = 1;
+		const DEFAULT_FORMAT = 'jpeg';
+		const ALLOWED_FORMATS = ['png', 'jpeg'];
+		const FORMAT_TO_EXTENSION = [
+			'png' => '.png',
+			'jpeg' => '.jpg',
+		];
 
 		protected $snapshot_url = "";
 		protected $snapshot_file = "";
@@ -79,10 +83,10 @@ if ( ! class_exists( 'mShots' ) ) {
 				$this->viewport_w = min( max( self::VIEWPORT_MIN_W, intval( $_GET[ 'vpw' ] ) ), self::VIEWPORT_MAX_W );
 			}
 
+			$this->format = self::DEFAULT_FORMAT;
+
 			if ( isset( $_GET[ 'format' ] ) && in_array( $_GET[ 'format' ], self::ALLOWED_FORMATS ) ) {
 				$this->format = $_GET[ 'format' ];
-			} else {
-				$this->format = self::DEFAULT_FORMAT;
 			}
 
 			if ( isset( $_GET[ 'vph' ] ) ) {
@@ -271,11 +275,10 @@ if ( ! class_exists( 'mShots' ) ) {
 					$indentX = 0 - ( $new_width - $thumb_width ) / 2;
 					imagecopyresampled( $thumb, $image, $indentX, 0, 0, 0, $new_width, $new_height, $width, $height );
 					if( $format === 'jpeg' ) {
-						imagejpeg( $thumb, null, 90 );
+						imagejpeg( $thumb, null, 95 );
 					} else {
 						imagepng( $thumb );
 					}
-					return;
 				} else {
 					error_log( "error processing filename : " . $image_filename );
 					if ( 0 < strlen( $image_filename ) ) {
@@ -348,8 +351,8 @@ if ( ! class_exists( 'mShots' ) ) {
 			if ( $this->scale_factor != self::SCALE_FACTOR_DEFAULT ) {
 				$suffix .= "_{$this->scale_factor}x";
 			}
-			
-			$extension = $this->format === 'jpeg' ? '.jpg' : '.png';
+
+			$extension = self::FORMAT_TO_EXTENSION[$this->format];
 
 			$fullpath = self::location_base . '/' . substr( $host, 0, 3 ) . '/' . $host . '/' . $file . $suffix . $extension;
 
