@@ -21,11 +21,14 @@ if ( ! class_exists( 'mShots' ) ) {
 		const SCREEN_MAX_H = 3600;
 		const SCALE_FACTOR_VALUES = [1, 2];
 		const SCALE_FACTOR_DEFAULT = 1;
-		const DEFAULT_FORMAT = 'jpeg';
-		const ALLOWED_FORMATS = ['png', 'jpeg'];
+
+		const JPEG = 'jpeg';
+		const PNG = 'png';
+		const DEFAULT_FORMAT = self::JPEG;
+		const ALLOWED_FORMATS = [ self::PNG, self::JPEG ];
 		const FORMAT_TO_EXTENSION = [
-			'png' => '.png',
-			'jpeg' => '.jpg',
+			self::PNG => '.png',
+			self::JPEG => '.jpg',
 		];
 
 		protected $snapshot_url = "";
@@ -256,7 +259,7 @@ if ( ! class_exists( 'mShots' ) ) {
 
 					$thumb_aspect = $thumb_width / $thumb_height;
 					if ( $thumb_width == $width && $thumb_height == $height ) {
-						if( $format === 'jpeg' ) {
+						if( $format === self::JPEG ) {
 							imagejpeg( $image, null, 90 );
 						} else {
 							imagepng( $image );
@@ -274,7 +277,7 @@ if ( ! class_exists( 'mShots' ) ) {
 					$thumb = imagecreatetruecolor( $thumb_width, $thumb_height );
 					$indentX = 0 - ( $new_width - $thumb_width ) / 2;
 					imagecopyresampled( $thumb, $image, $indentX, 0, 0, 0, $new_width, $new_height, $width, $height );
-					if( $format === 'jpeg' ) {
+					if( $format === self::JPEG ) {
 						imagejpeg( $thumb, null, 95 );
 					} else {
 						imagepng( $thumb );
@@ -352,7 +355,7 @@ if ( ! class_exists( 'mShots' ) ) {
 				$suffix .= "_{$this->scale_factor}x";
 			}
 
-			$extension = self::FORMAT_TO_EXTENSION[$this->format];
+			$extension = self::FORMAT_TO_EXTENSION[ $this->format ];
 
 			$fullpath = self::location_base . '/' . substr( $host, 0, 3 ) . '/' . $host . '/' . $file . $suffix . $extension;
 
