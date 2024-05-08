@@ -36,7 +36,7 @@ class MshotsUser( HttpUser ):
                 meta["response_length"] = len( resp.content )
                 break
             if resp.status_code >= 400:
-                meta["exception"] = "error: " + status_code
+                meta["exception"] = "error: " + resp.status_code
                 break
             time.sleep(1)
 
