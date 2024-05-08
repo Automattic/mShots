@@ -25,9 +25,9 @@ class MshotsUser( HttpUser ):
             "name": name,
             "start_time": start_perf_counter * 1000,
         }
-        
+
         # Retry every 1 second until the preview is loaded or an error
-        # Note that we do not have a max_tries because 
+        # Note that we do not have a max_tries because
         # that would free up the worker to add additional jobs to the mshots queue and make matters worse
         while True:
             resp = requests.get( f"{ self.host }/{ self.mshots_path }/{ snapshot_url }", allow_redirects=False )
@@ -36,7 +36,7 @@ class MshotsUser( HttpUser ):
                 meta["response_length"] = len( resp.content )
                 break
             if resp.status_code >= 400:
-                meta["exception"] = "error: " + status_code
+                meta["exception"] = "error: " + resp.status_code
                 break
             time.sleep(1)
 
