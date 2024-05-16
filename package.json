@@ -34,7 +34,7 @@
 		"puppeteer": "^15.4"
 	},
 	"devDependencies": {
-		"express": "^4.17.1",
+		"express": "^4.17.3",
 		"jest": "^25.3.0",
 		"sharp": "^0.30.5",
 		"tmp": "^0.1.0"
