@@ -29,7 +29,7 @@
 		"prepare": "npm run config:dev; npm run build; npm run docker:install-chromium-binary"
 	},
 	"dependencies": {
-		"ip": "^1.1.5",
+		"ip": "^2.0.1",
 		"log4js": ">=6.4.0",
 		"puppeteer": "^15.4"
 	},
