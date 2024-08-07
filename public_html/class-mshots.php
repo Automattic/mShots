@@ -96,10 +96,6 @@ if ( ! class_exists( 'mShots' ) ) {
 				$this->viewport_h = min( max( self::VIEWPORT_MIN_H, intval( $_GET[ 'vph' ] ) ), self::VIEWPORT_MAX_H );
 			}
 
-			if ( isset( $_GET[ 'forward_user_agent' ] ) ) {
-				$this->user_agent = $_SERVER[ 'HTTP_USER_AGENT' ];
-			}
-
 			if ( isset( $_GET[ 'screen_width' ] ) ) {
 				$this->screen_width = intval( $_GET[ 'screen_width' ] );
 				if ( $this->screen_width > self::SCREEN_MAX_W ) {
@@ -164,10 +160,6 @@ if ( ! class_exists( 'mShots' ) ) {
 
 			if ( $this->scale_factor != self::SCALE_FACTOR_DEFAULT ) {
 				$requeue_url .= '&scale=' . $this->scale_factor;
-			}
-
-			if ( isset( $this->user_agent ) ) {
-				$requeue_url .= '&user_agent=' . rawurlencode( $this->user_agent );
 			}
 
 			$requeue_url .= '&format=' . $this->format;
