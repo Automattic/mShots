@@ -248,12 +248,12 @@ if ( ! class_exists( 'mShots' ) ) {
 					$height = imagesy( $image );
 					$original_aspect = $width / $height;
 					// if we are not supplied with the width, use the original image's width
-					$thumb_width = ( isset( $_GET[ 'w' ] ) && $_GET[ 'w' ] ) ? $_GET[ 'w' ] : $width;
+					$thumb_width = ( isset( $_GET[ 'w' ] ) && $_GET[ 'w' ] && ctype_digit( $_GET[ 'w' ] ) ) ? $_GET[ 'w' ] : $width;
 					// keep the requested width within image bounds and limits
 					$thumb_width = max( 20, min( $width, min( $thumb_width, self::VIEWPORT_MAX_W ) ) );
 
 					// if we are not supplied with the height, calculate it from the original image aspect ratio
-					$thumb_height = ( isset( $_GET[ 'h' ] ) && $_GET[ 'h' ] ) ? $_GET[ 'h' ] : ( $thumb_width / ( $width / $height ) );
+					$thumb_height = ( isset( $_GET[ 'h' ] ) && $_GET[ 'h' ] && ctype_digit( $_GET[ 'h' ] ) ) ? $_GET[ 'h' ] : ( $thumb_width / ( $width / $height ) );
 					// keep the requested height within image bounds and limits
 					$thumb_height = max( 20, min( $height, min( $thumb_height, self::VIEWPORT_MAX_H ) ) );
 
