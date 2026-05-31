@@ -38,5 +38,10 @@
 		"jest": "^25.3.0",
 		"sharp": "^0.30.5",
 		"tmp": "^0.1.0"
+	},
+	"overrides": {
+		"@babel/traverse": "7.23.2",
+		"form-data": "2.5.5",
+		"json-schema": "0.4.0"
 	}
 }
