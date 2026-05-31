@@ -37,7 +37,7 @@
 		"express": "^4.17.1",
 		"jest": "^25.3.0",
 		"sharp": "^0.30.5",
-		"tmp": "^0.1.0"
+		"tmp": "^0.2.6"
 	},
 	"overrides": {
 		"@babel/traverse": "7.23.2",
