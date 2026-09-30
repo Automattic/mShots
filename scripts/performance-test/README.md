@@ -7,9 +7,8 @@ Uses the [locust](https://docs.locust.io) python library to test mshots performa
 First run mshots locally in docker
 
 ```bash
-brew install python3
-pip3 install -r requirements.txt
-locust
+brew install uv
+uv run locust
 ```
 
 A web ui will open on http://localhost:8089, choose a number of users and spawn rate.
