@@ -22,3 +22,10 @@ Note that mshots runs with only two workers by default. To change this, modify t
 npm run stop:docker
 npm run start
 ```
+
+## Linting
+
+```bash
+uv run ruff check .
+uv run ruff format .
+```
