@@ -38,7 +38,7 @@ class MshotsUser(HttpUser):
 
         # Retry every 1 second until the preview is loaded or an error
         # Note that we do not have a max_tries because
-        # that would free up the worker to add additional jobs to the mshots queue and make matters worse
+        # that would free up the worker to add additional jobs to the mShots queue and make matters worse
         while True:
             try:
                 resp = self.session.get(url, allow_redirects=False, timeout=30)

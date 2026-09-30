@@ -1,7 +1,7 @@
 [project]
 name = "mshots-performance-test"
 version = "0.1.0"
-description = "Locust performance tests for mshots"
+description = "Locust performance tests for mShots"
 requires-python = ">=3.11"
 dependencies = [
     "locust>=2.46.6",
