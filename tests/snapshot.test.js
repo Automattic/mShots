@@ -14,6 +14,14 @@ const app = express();
 const path = require("path");
 const sharp = require("sharp");
 
+// The Sec-CH-Prefers-Color-Scheme hint the color scheme page was last requested with
+let colorSchemeHint;
+app.use((req, res, next) => {
+  if (req.path === "/color-scheme-site.html") {
+    colorSchemeHint = req.headers["sec-ch-prefers-color-scheme"];
+  }
+  next();
+});
 app.use(express.static(path.resolve(__dirname, "./mock-content")));
 
 /**
@@ -79,6 +87,37 @@ test("add_to_queue: should create a snapshot", async () => {
   expect(fs.existsSync(tempFile));
   expect(fs.statSync(tempFile).size).toBeGreaterThan(0);
 });
+
+// Reads the colour of the screenshot's top-left pixel
+async function topLeftPixel( file ) {
+  const { data } = await sharp( file ).extract( { left: 0, top: 0, width: 1, height: 1 } ).raw().toBuffer( { resolveWithObject: true } );
+  return [ data[0], data[1], data[2] ];
+}
+
+test("add_to_queue: should render the page's light styles by default and its dark styles for colorScheme dark", async () => {
+  const site = {
+    url: "http://127.0.0.1:3000/color-scheme-site.html",
+    file: tempFile,
+    width: 1280,
+    height: 720,
+    format: "png",
+  };
+
+  await getSnapshotResult( site );
+  expect( await topLeftPixel( tempFile ) ).toEqual( [ 255, 255, 255 ] );
+  expect( colorSchemeHint ).toBeUndefined();
+
+  // a separate file, since sharp caches what it read from the first one
+  const darkFile = tmp.fileSync().name;
+  try {
+    await getSnapshotResult( { ...site, file: darkFile, colorScheme: "dark" } );
+    expect( await topLeftPixel( darkFile ) ).toEqual( [ 17, 17, 17 ] );
+    expect( colorSchemeHint ).toEqual( '"dark"' );
+  } finally {
+    fs.unlinkSync( darkFile );
+  }
+  // two snapshots, so allow the same time as the long-site test
+}, 15000);
 
 test("add_to_queue: should respect width and height params for normal height sites", async () => {
   let site = {

@@ -21,6 +21,8 @@ if ( ! class_exists( 'mShots' ) ) {
 		const SCREEN_MAX_H = 3600;
 		const SCALE_FACTOR_VALUES = [1, 2];
 		const SCALE_FACTOR_DEFAULT = 1;
+		const COLOR_SCHEME_VALUES = [ 'light', 'dark' ];
+		const COLOR_SCHEME_DEFAULT = 'light';
 
 		const JPEG = 'jpeg';
 		const PNG = 'png';
@@ -42,6 +44,7 @@ if ( ! class_exists( 'mShots' ) ) {
 		protected $viewport_w = self::VIEWPORT_DEFAULT_W;
 		protected $viewport_h = self::VIEWPORT_DEFAULT_H;
 		protected $scale_factor = self::SCALE_FACTOR_DEFAULT;
+		protected $color_scheme = self::COLOR_SCHEME_DEFAULT;
 
 		function __construct() {
 			ob_start();
@@ -126,6 +129,10 @@ if ( ! class_exists( 'mShots' ) ) {
 				}
 			}
 
+			if ( isset( $_GET[ 'color_scheme' ] ) && in_array( $_GET[ 'color_scheme' ], self::COLOR_SCHEME_VALUES, true ) ) {
+				$this->color_scheme = $_GET[ 'color_scheme' ];
+			}
+
 			$this->snapshot_file = $this->resolve_filename( $this->snapshot_url );
 		}
 
@@ -163,6 +170,10 @@ if ( ! class_exists( 'mShots' ) ) {
 
 			if ( $this->scale_factor != self::SCALE_FACTOR_DEFAULT ) {
 				$requeue_url .= '&scale=' . $this->scale_factor;
+			}
+
+			if ( $this->color_scheme != self::COLOR_SCHEME_DEFAULT ) {
+				$requeue_url .= '&color_scheme=' . $this->color_scheme;
 			}
 
 			$requeue_url .= '&format=' . $this->format;
@@ -356,6 +367,10 @@ if ( ! class_exists( 'mShots' ) ) {
 
 			if ( $this->scale_factor != self::SCALE_FACTOR_DEFAULT ) {
 				$suffix .= "_{$this->scale_factor}x";
+			}
+
+			if ( $this->color_scheme != self::COLOR_SCHEME_DEFAULT ) {
+				$suffix .= "_{$this->color_scheme}";
 			}
 
 			$extension = self::FORMAT_TO_EXTENSION[ $this->format ];
