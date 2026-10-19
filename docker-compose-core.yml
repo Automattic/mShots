@@ -1,11 +1,10 @@
-version: "3"
 services:
   mshots:
     container_name: 'mshots'
     environment:
-        - USER=www-data
-        - UID=33
-        - MSHOTS_MEMCACHE_HOST=memcached
+      - USER=www-data
+      - UID=33
+      - MSHOTS_MEMCACHE_HOST=memcached
     build:
       context: .
     ports:
