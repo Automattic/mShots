@@ -52,7 +52,7 @@ RUN apt-get update && apt-get install -y \
 RUN a2enmod rewrite
 
 # Install Node
-RUN curl -sL https://deb.nodesource.com/setup_14.x | bash -
+RUN curl -sL https://deb.nodesource.com/setup_24.x | bash -
 RUN apt-get install -y nodejs
 
 # configure Apache and PHP
@@ -77,8 +77,8 @@ COPY . /opt/mshots
 
 # Set up node & npm
 ENV npm_config_cache=/var/www/.npm
-RUN mkdir -p /var/www/.npm /usr/local/node/bin
-RUN ln -s /usr/bin/node /usr/local/node/bin
+RUN mkdir -p /var/www/.npm /usr/local/node/bin && \
+    ln -s /usr/bin/node /usr/local/node/bin
 
 # Setup our user and permissions
 # These are overridden by values in ./.env if it exists
