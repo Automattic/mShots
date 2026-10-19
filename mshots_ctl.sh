@@ -31,14 +31,16 @@ function startservice {
 		exit 1
 	fi
 
-	running=`lsmod | grep vfb | awk '{ print $(1) }'`
-	if [ -z $running ] && [ "$ARCH" != "arm64" ] ; then
-		echo "loading vfb"
-		modprobe -r vfb
-		modprobe vfb vfb_enable=yes videomemorysize=7733248
-		fbset 1600x1200-76 -depth 24 -accel true
-	else
-		echo "vfb already loaded, skipping"
+	if command -v lsmod >/dev/null 2>&1; then
+		running=$( lsmod | grep vfb | awk '{ print $(1) }' )
+		if [ -z "$running" ] && [ "$ARCH" != "arm64" ] ; then
+			echo "loading vfb"
+			modprobe -r vfb
+			modprobe vfb vfb_enable=yes videomemorysize=7733248
+			fbset 1600x1200-76 -depth 24 -accel true
+		else
+			echo "vfb already loaded, skipping"
+		fi
 	fi
 
 	if [ ! -d "${INSTALL_DIR}/logs" ]; then
