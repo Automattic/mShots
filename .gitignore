@@ -6,3 +6,4 @@ docker-compose.yml
 stats/
 .env
 logs/
+.DS_Store
