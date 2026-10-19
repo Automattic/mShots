@@ -1,4 +1,4 @@
-FROM php:7.4-apache-buster
+FROM php:8.4-apache-bookworm
 
 # Note ARGs UID, GID and USER are defined later to reduce rebuilding time
 
@@ -10,7 +10,7 @@ RUN apt-get update && \
     libexpat1 libfontconfig1 libgcc1 libgconf-2-4 libgdk-pixbuf2.0-0 libglib2.0-0 libgtk-3-0 libnspr4 \
     libpango-1.0-0 libpangocairo-1.0-0 libstdc++6 libx11-6 libx11-xcb1 libxcb1 libxcomposite1 \
     libxcursor1 libxdamage1 libxext6 libxfixes3 libxi6 libxrandr2 libxrender1 libxss1 libxtst6 \
-    ca-certificates fonts-liberation libappindicator1 libnss3 lsb-release xdg-utils wget vim
+    ca-certificates fonts-liberation libappindicator1 libnss3 lsb-release xdg-utils wget vim unzip
 
 # From: https://github.com/puppeteer/puppeteer/blob/main/docs/troubleshooting.md#running-puppeteer-in-docker
 # Install latest chrome dev package and fonts to support major charsets (Chinese, Japanese, Arabic, Hebrew, Thai and a few others)
@@ -38,8 +38,7 @@ RUN rm -rf /var/lib/apt/lists/*
 # Install memcache extension
 RUN apt-get update \
     && apt-get install -y memcached libmemcached-dev zlib1g-dev
-
-RUN pecl install memcache-4.0.5.2 \
+RUN pecl install memcache \
     && docker-php-ext-enable memcache
 
 # Install GD
@@ -53,7 +52,7 @@ RUN apt-get update && apt-get install -y \
 RUN a2enmod rewrite
 
 # Install Node
-RUN curl -sL https://deb.nodesource.com/setup_14.x | bash -
+RUN curl -sL https://deb.nodesource.com/setup_24.x | bash -
 RUN apt-get install -y nodejs
 
 # configure Apache and PHP
@@ -78,8 +77,8 @@ COPY . /opt/mshots
 
 # Set up node & npm
 ENV npm_config_cache=/var/www/.npm
-RUN mkdir -p /var/www/.npm /usr/local/node/bin
-RUN ln -s /usr/bin/node /usr/local/node/bin
+RUN mkdir -p /var/www/.npm /usr/local/node/bin && \
+    ln -s /usr/bin/node /usr/local/node/bin
 
 # Setup our user and permissions
 # These are overridden by values in ./.env if it exists
@@ -88,7 +87,7 @@ ARG GID=33
 ARG USER=www-data
 
 RUN groupadd --force -g $GID $USER
-RUN adduser --disabled-password --no-create-home --uid $UID --gid $GID --gecos '' $USER || true
+RUN adduser --disabled-password --uid $UID --gid $GID --gecos '' $USER || true
 
 RUN touch /var/run/mshots.pid \
     && chown -R $UID /var/run/mshots.pid \
@@ -104,7 +103,7 @@ RUN npm install --ignore-scripts
 # Force chromium binary installation
 ENV CHROMEDRIVER_SKIP_DOWNLOAD ''
 RUN cd node_modules/puppeteer \
-    && node ./install.js
+    && node ./install.mjs
 
 # Get started
 EXPOSE 8000

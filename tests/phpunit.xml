@@ -1,8 +1,5 @@
 <phpunit
         stopOnFailure="false"
         backupGlobals="false"
-        convertNoticesToExceptions="false"
-        convertWarningsToExceptions="false"
-        cacheResult="false">
+        recordTestRunHistory="false">
 </phpunit>
-
