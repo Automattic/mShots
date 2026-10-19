@@ -22,7 +22,7 @@ function startservice {
 		echo "mShots.JS is not installed in the correct directory: ${INSTALL_DIR}"
 		exit 1
 	fi
-	pid="`ps -ef | grep 'mShots.JS - Master' | grep -v 'grep' | awk ' { print $(2) }'`"
+	pid="$( ps -ef | grep 'mShots.JS - Master' | grep -v 'grep' | awk ' { print $(2) }' )"
 	if [ -z $pid ]; then
 		pid=0
 	fi
@@ -52,7 +52,7 @@ function startservice {
 		exit 1
 	fi
 
-	pid="`ps -ef | grep 'mShots.JS - Worker' | grep -v 'grep' | awk 'NR==1 { print $(2) }'`"
+	pid="$( ps -ef | grep 'mShots.JS - Worker' | grep -v 'grep' | awk 'NR==1 { print $(2) }' )"
 	if [ -z $pid ]; then
 		pid=0
 	else
@@ -61,7 +61,7 @@ function startservice {
 	while [ $pid -gt 0 ]; do
 		echo "Killing orphaned Worker thread: $pid"
 		kill -s 9 $pid
-		pid="`ps -ef | grep 'mShots.JS - Worker' | grep -v 'grep' | awk 'NR==1 { print $(2) }'`"
+		pid="$( ps -ef | grep 'mShots.JS - Worker' | grep -v 'grep' | awk 'NR==1 { print $(2) }' )"
 		if [ -z $pid ]; then
 			pid=0
 		fi
@@ -83,7 +83,7 @@ function stopservice {
 }
 
 function reload_config {
-	pid="`cat /var/run/mshots.pid`"
+	pid="$( cat /var/run/mshots.pid )"
 	if [ -z $pid ]; then
 		pid=0
 	fi
