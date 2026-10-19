@@ -34,6 +34,9 @@ if ( ! class_exists( 'mShots' ) ) {
 		protected $snapshot_url = "";
 		protected $snapshot_file = "";
 		protected $parsed_url = "";
+		protected $format = self::DEFAULT_FORMAT;
+		protected $screen_width = self::SCREEN_MAX_W;
+		protected $screen_height = self::SCREEN_MAX_H;
 		protected $requeue = false;
 		protected $invalidate = false;
 		protected $viewport_w = self::VIEWPORT_DEFAULT_W;

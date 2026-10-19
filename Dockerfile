@@ -1,4 +1,4 @@
-FROM php:7.4-apache-buster
+FROM php:8.4-apache-bookworm
 
 # Note ARGs UID, GID and USER are defined later to reduce rebuilding time
 
@@ -38,8 +38,7 @@ RUN rm -rf /var/lib/apt/lists/*
 # Install memcache extension
 RUN apt-get update \
     && apt-get install -y memcached libmemcached-dev zlib1g-dev
-
-RUN pecl install memcache-4.0.5.2 \
+RUN pecl install memcache \
     && docker-php-ext-enable memcache
 
 # Install GD
@@ -88,7 +87,7 @@ ARG GID=33
 ARG USER=www-data
 
 RUN groupadd --force -g $GID $USER
-RUN adduser --disabled-password --no-create-home --uid $UID --gid $GID --gecos '' $USER || true
+RUN adduser --disabled-password --uid $UID --gid $GID --gecos '' $USER || true
 
 RUN touch /var/run/mshots.pid \
     && chown -R $UID /var/run/mshots.pid \
@@ -104,7 +103,7 @@ RUN npm install --ignore-scripts
 # Force chromium binary installation
 ENV CHROMEDRIVER_SKIP_DOWNLOAD ''
 RUN cd node_modules/puppeteer \
-    && node ./install.js
+    && node ./install.mjs
 
 # Get started
 EXPOSE 8000
