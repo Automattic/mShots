@@ -71,6 +71,10 @@ class MshotsTest extends \PHPUnit\Framework\TestCase {
 			[ '/mshots/v1/wordpress.com?vph=333', '/opt/mshots/public_html/thumbnails/875/8751a27a0b7ea911b1fd202d34602123df995951/653166773dc88127bd3afe0b6dfe5ea7_1280x333.jpg' ],
 			[ '/mshots/v1/wordpress.com?vpw=333', '/opt/mshots/public_html/thumbnails/875/8751a27a0b7ea911b1fd202d34602123df995951/653166773dc88127bd3afe0b6dfe5ea7_333x960.jpg' ],
 			[ '/mshots/v1/wordpress.com?vph=333&vpw=333', '/opt/mshots/public_html/thumbnails/875/8751a27a0b7ea911b1fd202d34602123df995951/653166773dc88127bd3afe0b6dfe5ea7_333x333.jpg' ],
+			[ '/mshots/v1/wordpress.com?color_scheme=dark', '/opt/mshots/public_html/thumbnails/875/8751a27a0b7ea911b1fd202d34602123df995951/653166773dc88127bd3afe0b6dfe5ea7_dark.jpg' ],
+			// The default scheme, and values mShots can't render, share the existing file
+			[ '/mshots/v1/wordpress.com?color_scheme=light', '/opt/mshots/public_html/thumbnails/875/8751a27a0b7ea911b1fd202d34602123df995951/653166773dc88127bd3afe0b6dfe5ea7.jpg' ],
+			[ '/mshots/v1/wordpress.com?color_scheme=sepia', '/opt/mshots/public_html/thumbnails/875/8751a27a0b7ea911b1fd202d34602123df995951/653166773dc88127bd3afe0b6dfe5ea7.jpg' ],
 			[ '/mshots/v1/https://public-api.wordpress.com/rest/v1/template/demo/rockfield/reynolds?font_base=Fira%20Sans&font_headings=Playfair%20Display&site_title=Reynolds&language=ko',
 			 '/opt/mshots/public_html/thumbnails/ed2/ed271f0f0255e9d784e345dc2f0d8cc48ca26019/e295c5f761af9ac029f49726f50b16b1.jpg' ],
 			// A couple of examples from a google search:
@@ -104,6 +108,8 @@ class MshotsTest extends \PHPUnit\Framework\TestCase {
 			'?vph=320&vpw=320&screen_height=640',
 			'?vph=320&vpw=320&screen_width=640',
 			'?vph=320&vpw=320&screen_height=640&screen_width=640',
+
+			'?vph=320&vpw=320&color_scheme=dark',
 		];
 
 		$filenames_to_dimensions = array();
