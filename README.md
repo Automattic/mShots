@@ -22,6 +22,16 @@ If anything goes awry or is unclear in one of these steps, take a look at the "D
 4) You are now ready to run the mShots service with "./mshots_ctl.sh start|stop".
     Note: The virtual frame buffer Kernel module (VFB) is required on your distro.
 
+### Production Network Requirements
+
+#### Blocklist
+
+Any IP addresses, ranges, or domains that you would like to block access to must be added into the `config/blacklist.dat` file. This ensures that requests to unwanted domains or resolved IP addresses are blocked early in the snapshot process.
+
+#### Firewall
+
+In addition to the blocklist config, production firewall rules must deny the service egress to special-purpose addresses that are not globally reachable (RFC 6890). That includes loopback, link-local, and private ranges. These rules must apply to the address the worker connects to, so that a domain name cannot be used to reach an address that the blocklist should have rejected with a DNS lookup.
+
 ### Production Deployment
 
 The Automattic Systems Team manages the live deployment of mShots. Once a PR has been reviewed, merge it into master and then make a systems request to have the change deployed. Try to include isolated testing instructions for the PR (i.e. that don’t require using Calypso or WordPress.com) and screenshots to show the expected visual results.
