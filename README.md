@@ -1,15 +1,12 @@
+# mShots
 
-mshots
-======
+## Overview
 
-Overview
-----------
-This application is split into two distinct components, the mshots PHP class (receiving requests from the WordPress mshots plugin),
-the node.JS cluster service to process the filtered incoming requests passed on from the mshots class.
+This application is split into two distinct components, the mShots PHP class (receiving requests from the WordPress mShots plugin), the node.JS cluster service to process the filtered incoming requests passed on from the mShots class.
+
 Note: The virtual frame buffer Kernel module (VFB) is required for the service.
 
-Production Installation
-------------
+### Production Installation
 
 These instructions are for setting up mShots for production on a linux host.
 If you only need to run mShots locally skip down to the Dev Setup.
@@ -18,36 +15,35 @@ If anything goes awry or is unclear in one of these steps, take a look at the "D
 
 1) Install the latest node.js binaries from http://nodejs.org
 
-2) Place the code in this repository in an mshots folder in `/opt/`, so the final path is `/opt/mshots/`.
+2) Place the code in this repository in an mShots folder in `/opt/`, so the final path is `/opt/mshots/`.
 
 3) Run `npm install --ignore-scripts` in the `/opt/mshots/` directory.
 
-4) You are now ready to run the mshots service with "./mshots_ctl.sh start|stop".
+4) You are now ready to run the mShots service with "./mshots_ctl.sh start|stop".
     Note: The virtual frame buffer Kernel module (VFB) is required on your distro.
 
-Production Deployment
----------------------
+### Production Deployment
 
 The Automattic Systems Team manages the live deployment of mShots. Once a PR has been reviewed, merge it into master and then make a systems request to have the change deployed. Try to include isolated testing instructions for the PR (i.e. that don’t require using Calypso or WordPress.com) and screenshots to show the expected visual results.
 
-Details
---------
+## Details
 
-**The mshots PHP Class (code in "public_html")**
+### The mShots PHP Class (code in "public_html")
 
 This class is designed to buffer the thumbnail requests, by limiting snapshots to only be taken every 24 hours. The most useful attribute
-of this class is the "disable_requeue" constant, but changing this to true you effectively stop all calls to the mshots service, which
+of this class is the "disable_requeue" constant, but changing this to true you effectively stop all calls to the mShots service, which
 can be used if the service misbehaves for any reason. With this setting enabled existing thumbnails will be served, but no new thumbnails
 are generated.
 
-**mshots node.JS Program (code in "lib")**
+### mShots node.JS Program (code in "lib")
 
 Control the execution of the application with the `mshots_ctl.sh` bash script in the root directory or by manually running the following command from the terminal, whilst in the  `/opt/mshots/` directory:
 
-	> node lib/mshots -p <port number> -n <number of workers>
+```bash
+> node lib/mshots -p <port number> -n <number of workers>
+```
 
-Tests
-------
+### Tests
 
 Both JS and php unit tests live in the `tests` directory and can be run with
 the `npm test` command.
@@ -56,23 +52,22 @@ They can also be run individually with `npm run test:js` and `npm run test:php`
 
 The test scripts should also work inside the docker container described immediately below.
 
-Dev Setup
----------
+## Dev Setup
 
-Docker can be used to run the mshots service on OSX for dev/testing purposes:
+Docker can be used to run the mShots service on OSX for dev/testing purposes:
 
 - First, give docker permission to mount your dev directory. For Docker Desktop this is in
-  `Preferences -> Resources-> File Sharing` where you can add the path to where mshots is checked out.
+  `Preferences -> Resources-> File Sharing` where you can add the path to where mShots is checked out.
 - `npm install`: This will also configure the docker container for development and build the docker image (unless you pass `--ignore-scripts`)
-- `npm start`: spins up the `mshots` (docker) service in the `mshots-dev` container and starts the mshots (*nix) service within it
+- `npm start`: spins up the `mShots` (docker) service in the `mshots-dev` container and starts the mShots (*nix) service within it
 - Ignore the errors about the missing commands. We don't use the kernel extension in the dev container.
-- Check that mshots is available on localhost:8000, e.g. http://localhost:8000/mshots/v1/example.com
+- Check that mShots is available on localhost:8000, e.g. http://localhost:8000/mshots/v1/example.com
 
 Note that when you enter a new url for the first time, mShots will redirect to https://s0.wp.com/mshots/v1/default while it fetches the url and generates the screenshot. Wait a few seconds and navigate to the url a second time to see the generated image.
 
 Note that output is a bit tricky.
 
-While docker is running you can use `docker-compose logs` to attach and get it's output, which covers php and mshots.ctl and general docker/apache output.
+While docker is running you can use `docker-compose logs` to attach and get it's output, which covers php and `mshots_ctl.sh` and general docker/apache output.
 
 As a service, `mShots` doesn't have a parent terminal and also has minimal file
 permissions so use `logger.debug( 'msg' )` and `logger.error( 'msg' )`,
@@ -82,20 +77,21 @@ If you need debug ouput from a dependency (like puppeteer), you can give the fil
 `chmod a+w logs/mshots.log` and then append to that (or another) file:
 `fs.appendFileSync( 'logs/mshots.log', '\n' + JSON.stringify( { whatever: [ 'data' ] }, null, 2 ) + '\n' )`
 
-### Performance testing
+## Performance testing
 
-Performance tests live in `scripts/performance-test` and use the locust python framework. See [Performance testing readme](./scripts/performance-test/README.md) 
+Performance tests live in `scripts/performance-test` and use the locust python framework. See [Performance testing readme](./scripts/performance-test/README.md)
 
 ### Troubleshooting
 
-##### Error response from daemon: Mounts denied
+#### Error response from daemon: Mounts denied
 
 This occurs if docker does not have permissions to mount your local development directory into the container. Follow the given instructions to resolve this - for Docker Desktop, add the path under Docker -> Preferences... -> Resources -> File Sharing.
 
-##### Missing chromium binary
+#### Missing chromium binary
+
 The container requires a linux chromium binary, so if puppeteer can't find chromium, run `install.js` in the puppeteer directory in the appropriate environment. Binaries for different OSes can live side-by-side so you can just install both:
 
-```
+```bash
 # check what's already installed
 ls /opt/mshots/node_modules/puppeteer/.local-chromium
 # install native binary
